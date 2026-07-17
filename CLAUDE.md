@@ -18,6 +18,10 @@ the relevant guide in `node_modules/next/dist/docs/` (`01-app/`, `02-pages/`, `0
 
 No test runner is configured yet.
 
+## Skills 
+
+Usa siempre /frontend-design para diseñar la interfaz de usuario
+
 ## Architecture
 
 - App Router. Source lives in `app/` at the repo root (no `src/` dir).
