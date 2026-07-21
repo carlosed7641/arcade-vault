@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { sendContactMessage } from "./actions";
 
 function HighlightIcon({ kind }: { kind: "HEART" | "BROWSER" | "PLANT" }) {
   const C = "currentColor";
@@ -81,6 +82,8 @@ export default function AboutPage() {
   const [form, setForm] = useState<ContactForm>({ name: "", email: "", msg: "" });
   const [sent, setSent] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +92,15 @@ export default function AboutPage() {
       setTimeout(() => setShake(false), 400);
       return;
     }
-    setSent(form.name.trim());
+    startTransition(async () => {
+      const res = await sendContactMessage(form);
+      if (res.ok) {
+        setError(null);
+        setSent(form.name.trim());
+      } else {
+        setError(res.error);
+      }
+    });
   };
 
   return (
@@ -174,8 +185,14 @@ export default function AboutPage() {
                     placeholder="Cuéntanos qué tienes en mente…"
                   ></textarea>
                 </div>
-                <button className="btn xl press" type="submit" style={{ width: "100%" }}>
-                  ▶ ENVIAR MENSAJE
+                {error && <div className="form-error">{error}</div>}
+                <button
+                  className="btn xl press"
+                  type="submit"
+                  style={{ width: "100%" }}
+                  disabled={isPending}
+                >
+                  {isPending ? "▶ ENVIANDO…" : "▶ ENVIAR MENSAJE"}
                 </button>
               </>
             ) : (
@@ -203,6 +220,7 @@ export default function AboutPage() {
                       type="button"
                       onClick={() => {
                         setSent(null);
+                        setError(null);
                         setForm({ name: "", email: "", msg: "" });
                       }}
                     >
