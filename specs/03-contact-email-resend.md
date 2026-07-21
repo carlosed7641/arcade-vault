@@ -105,6 +105,7 @@ Convenciones:
 - **Sí:** estado de carga con `useTransition` y botón deshabilitado (`"ENVIANDO…"`) mientras se llama a Resend. Evita doble envío y da feedback inmediato, consistente con la estética "terminal" del proyecto.
 - **No:** rate limiting, captcha o protección anti-spam en este spec. El proyecto sigue en MVP sin usuarios reales masivos todavía; se puede agregar en un spec futuro si se detecta abuso.
 - **No:** guardar los mensajes de contacto en base de datos. El proyecto no tiene backend de persistencia más allá de `localStorage` (SPEC 01); guardarlos requeriría un spec de backend aparte.
+- **Sí (desviación en implementación):** usar `.env.template` en vez de `.env.local.example` para los placeholders. `.gitignore` ignora `.env*` con la única excepción de `.env.template`; `.env.local.example` habría quedado ignorado por git y nunca se hubiera commiteado.
 
 ## Riesgos
 
