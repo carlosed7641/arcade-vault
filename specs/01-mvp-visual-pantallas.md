@@ -1,6 +1,6 @@
 # SPEC 01 — MVP visual de Arcade Vault
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** Ninguno
 > **Fecha:** 2026-07-17
 > **Objetivo:** Portar las 5 pantallas de `references/templates/` (Biblioteca, Detalle, Reproductor, Login y Salón de la Fama) a rutas reales de Next.js App Router, con la estética CRT/neón original y datos simulados, sin implementar lógica jugable real.
