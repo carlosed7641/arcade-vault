@@ -1,6 +1,6 @@
 # SPEC 02 — Home y Acerca de
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-07-21
 > **Objetivo:** Portar `home.jsx` y `about.jsx` de `references/templates/home-about/` como una landing de marketing en `/` y una página `/acerca-de` con formulario de contacto simulado, moviendo la Biblioteca actual de `/` a `/biblioteca`.
@@ -66,21 +66,21 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` finaliza sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] `/` muestra la landing de Home (hero, features, preview de juegos, stats, actividad, precios, CTA final), no la grilla de Biblioteca.
-- [ ] `/biblioteca` muestra la grilla de juegos con búsqueda y filtro por categoría, igual que antes en `/`.
-- [ ] En Home, el botón "▶ EXPLORAR JUEGOS" navega a `/biblioteca`.
-- [ ] En Home, el botón "✦ CREAR CUENTA" y el CTA final navegan a `/login`.
-- [ ] En Home, hacer click en una de las 6 tarjetas de juegos destacados navega a `/juegos/[id]` con el `id` correcto.
-- [ ] En Home, la sección "Top jugadores · hoy" muestra 5 filas generadas por `seededScores` y el botón "Ver salón" navega a `/salon-de-la-fama`.
-- [ ] `/acerca-de` muestra la sección de misión, los 3 highlights y el formulario de contacto.
-- [ ] Enviar el formulario de contacto en `/acerca-de` con campos vacíos activa la animación "shake" y no muestra el mensaje de éxito.
-- [ ] Enviar el formulario de contacto con los 3 campos completos muestra el "terminal de éxito" con el nombre ingresado.
-- [ ] El botón "Enviar otro mensaje" en el terminal de éxito limpia el formulario y permite enviar de nuevo.
-- [ ] El header (`Nav`) muestra 4 enlaces: Inicio, Biblioteca, Salón de la Fama, Acerca de, en ese orden, tanto en desktop como en el menú móvil.
-- [ ] Estando en `/juegos/[id]` o `/juegos/[id]/jugar`, el enlace "Biblioteca" del Nav aparece resaltado como activo.
-- [ ] El botón "Volver al vault" (o equivalente) en Detalle navega a `/biblioteca`, no a `/`.
+- [x] `npm run build` finaliza sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] `/` muestra la landing de Home (hero, features, preview de juegos, stats, actividad, precios, CTA final), no la grilla de Biblioteca.
+- [x] `/biblioteca` muestra la grilla de juegos con búsqueda y filtro por categoría, igual que antes en `/`.
+- [x] En Home, el botón "▶ EXPLORAR JUEGOS" navega a `/biblioteca`.
+- [x] En Home, el botón "✦ CREAR CUENTA" navega a `/login`; el CTA final ("INSERTAR MONEDA →") navega a `/biblioteca`, igual que en `home.jsx`.
+- [x] En Home, hacer click en una de las 6 tarjetas de juegos destacados navega a `/juegos/[id]` con el `id` correcto.
+- [x] En Home, la sección "Top jugadores · hoy" muestra 5 filas generadas por `seededScores` y el botón "Ver salón" navega a `/salon-de-la-fama`.
+- [x] `/acerca-de` muestra la sección de misión, los 3 highlights y el formulario de contacto.
+- [x] Enviar el formulario de contacto en `/acerca-de` con campos vacíos activa la animación "shake" y no muestra el mensaje de éxito.
+- [x] Enviar el formulario de contacto con los 3 campos completos muestra el "terminal de éxito" con el nombre ingresado.
+- [x] El botón "Enviar otro mensaje" en el terminal de éxito limpia el formulario y permite enviar de nuevo.
+- [x] El header (`Nav`) muestra 4 enlaces: Inicio, Biblioteca, Salón de la Fama, Acerca de, en ese orden, tanto en desktop como en el menú móvil.
+- [x] Estando en `/juegos/[id]` o `/juegos/[id]/jugar`, el enlace "Biblioteca" del Nav aparece resaltado como activo.
+- [x] El botón "Volver al vault" (o equivalente) en Detalle navega a `/biblioteca`, no a `/`.
 
 ## Decisiones
 
