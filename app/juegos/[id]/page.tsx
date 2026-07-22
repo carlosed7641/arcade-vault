@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GAMES, seededScores } from "@/lib/data";
+import { GAMES } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function GameDetailPage({
   params,
@@ -11,7 +12,33 @@ export default async function GameDetailPage({
   const game = GAMES.find((g) => g.id === id);
   if (!game) notFound();
 
-  const scores = seededScores(id.length * 17 + 3, 10);
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("scores")
+    .select("score, created_at, profiles(username)")
+    .eq("game_id", id)
+    .order("score", { ascending: false })
+    .limit(100);
+
+  const seen = new Set<string>();
+  const scores: { rank: number; name: string; score: number; date: string }[] =
+    [];
+  for (const entry of (data ?? []) as unknown as Array<{
+    score: number;
+    created_at: string;
+    profiles: { username: string } | null;
+  }>) {
+    const username = entry.profiles?.username;
+    if (!username || seen.has(username)) continue;
+    seen.add(username);
+    scores.push({
+      rank: scores.length + 1,
+      name: username,
+      score: entry.score,
+      date: new Date(entry.created_at).toLocaleDateString("es-ES"),
+    });
+    if (scores.length === 10) break;
+  }
 
   return (
     <div className="av-detail fade-in">
@@ -72,30 +99,45 @@ export default async function GameDetailPage({
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
-          {scores.map((r, i) => (
+          {scores.length === 0 ? (
             <div
-              key={r.name}
-              className={
-                "lb-row" +
-                (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
-              }
+              style={{ textAlign: "center", padding: "24px 0" }}
+              className="mono"
             >
-              <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-              <div className="pl">
-                {r.name}
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "var(--ink-faint)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {r.date}
-                </div>
-              </div>
-              <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+              SÉ EL PRIMERO EN DEJAR TU MARCA EN {game.title}
             </div>
-          ))}
+          ) : (
+            scores.map((r, i) => (
+              <div
+                key={r.name}
+                className={
+                  "lb-row" +
+                  (i === 0
+                    ? " top1"
+                    : i === 1
+                      ? " top2"
+                      : i === 2
+                        ? " top3"
+                        : "")
+                }
+              >
+                <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+                <div className="pl">
+                  {r.name}
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "var(--ink-faint)",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    {r.date}
+                  </div>
+                </div>
+                <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+              </div>
+            ))
+          )}
         </div>
       </aside>
     </div>
