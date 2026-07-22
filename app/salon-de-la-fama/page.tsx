@@ -1,19 +1,72 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GAMES, seededScores } from "@/lib/data";
+import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
+
+type HallRow = {
+  rank: number;
+  username: string;
+  score: number;
+  date: string;
+};
 
 export default function HallOfFamePage() {
   const router = useRouter();
   const { user } = useAuth();
   const [tab, setTab] = useState(GAMES[0].id);
+  const [rows, setRows] = useState<HallRow[]>([]);
+  const [dataTab, setDataTab] = useState<string | null>(null);
+  const loading = dataTab !== tab;
 
-  const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
   const game = GAMES.find((g) => g.id === tab)!;
-  const youRank = user ? Math.floor(8 + (tab.length % 4)) : null;
-  const youScore = user ? rows[5]?.score - 2400 : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("scores")
+      .select("score, created_at, profiles(username)")
+      .eq("game_id", tab)
+      .order("score", { ascending: false })
+      .limit(100)
+      .then(({ data }) => {
+        if (cancelled) return;
+
+        const seen = new Set<string>();
+        const best: HallRow[] = [];
+        for (const entry of (data ?? []) as unknown as Array<{
+          score: number;
+          created_at: string;
+          profiles: { username: string } | null;
+        }>) {
+          const username = entry.profiles?.username;
+          if (!username || seen.has(username)) continue;
+          seen.add(username);
+          best.push({
+            rank: best.length + 1,
+            username,
+            score: entry.score,
+            date: new Date(entry.created_at).toLocaleDateString("es-ES"),
+          });
+          if (best.length === 12) break;
+        }
+
+        setRows(best);
+        setDataTab(tab);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tab]);
+
+  const you = useMemo(
+    () => (user ? rows.find((r) => r.username === user.username) : undefined),
+    [rows, user],
+  );
 
   return (
     <div className="av-hall fade-in">
@@ -36,71 +89,125 @@ export default function HallOfFamePage() {
         ))}
       </div>
 
-      <div className="podium">
-        <div className="podium-slot silver">
-          <div className="rank-num">02</div>
-          <div className="name">{rows[1].name}</div>
-          <div className="score">{rows[1].score.toLocaleString("es-ES")}</div>
-          <div className="date">{rows[1].date}</div>
+      {loading ? (
+        <div
+          style={{ textAlign: "center", padding: "48px 0" }}
+          className="mono"
+        >
+          CARGANDO PUNTUACIONES…
         </div>
-        <div className="podium-slot gold">
-          <div className="pixel" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}>
-            CAMPEÓN
-          </div>
-          <div className="rank-num" style={{ fontSize: 36, marginTop: 4 }}>
-            01
-          </div>
-          <div className="name">{rows[0].name}</div>
-          <div className="score" style={{ fontSize: 20 }}>
-            {rows[0].score.toLocaleString("es-ES")}
-          </div>
-          <div className="date">{rows[0].date}</div>
+      ) : rows.length === 0 ? (
+        <div
+          style={{ textAlign: "center", padding: "48px 0" }}
+          className="mono"
+        >
+          SÉ EL PRIMERO EN DEJAR TU MARCA EN {game.title}
         </div>
-        <div className="podium-slot bronze">
-          <div className="rank-num">03</div>
-          <div className="name">{rows[2].name}</div>
-          <div className="score">{rows[2].score.toLocaleString("es-ES")}</div>
-          <div className="date">{rows[2].date}</div>
-        </div>
-      </div>
-
-      <div className="hall-table">
-        <div className="th">
-          <div>RANGO</div>
-          <div>JUGADOR</div>
-          <div>PUNTUACIÓN</div>
-          <div>FECHA</div>
-        </div>
-        {rows.map((r, i) => (
-          <div
-            key={r.name + i}
-            className={"tr" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
-            style={{ animationDelay: `${i * 50}ms` }}
-          >
-            <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-            <div className="pl">{r.name}</div>
-            <div className="sc">{r.score.toLocaleString("es-ES")}</div>
-            <div className="dt">{r.date}</div>
-          </div>
-        ))}
-        {user && (
-          <>
-            <div className="tr you-label">▸ TU MEJOR MARCA EN {game.title}</div>
-            <div className="tr you" style={{ animationDelay: `${rows.length * 50 + 50}ms` }}>
-              <div className="rk" style={{ color: "var(--yellow)" }}>
-                #{String(youRank).padStart(2, "0")}
+      ) : (
+        <>
+          {rows.length >= 3 && (
+            <div className="podium">
+              <div className="podium-slot silver">
+                <div className="rank-num">02</div>
+                <div className="name">{rows[1].username}</div>
+                <div className="score">
+                  {rows[1].score.toLocaleString("es-ES")}
+                </div>
+                <div className="date">{rows[1].date}</div>
               </div>
-              <div className="pl" style={{ color: "var(--yellow)" }}>
-                {user.name}
+              <div className="podium-slot gold">
+                <div
+                  className="pixel"
+                  style={{
+                    fontSize: 9,
+                    color: "var(--gold)",
+                    letterSpacing: "0.18em",
+                  }}
+                >
+                  CAMPEÓN
+                </div>
+                <div
+                  className="rank-num"
+                  style={{ fontSize: 36, marginTop: 4 }}
+                >
+                  01
+                </div>
+                <div className="name">{rows[0].username}</div>
+                <div className="score" style={{ fontSize: 20 }}>
+                  {rows[0].score.toLocaleString("es-ES")}
+                </div>
+                <div className="date">{rows[0].date}</div>
               </div>
-              <div className="sc" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
-                {(youScore || 9999).toLocaleString("es-ES")}
+              <div className="podium-slot bronze">
+                <div className="rank-num">03</div>
+                <div className="name">{rows[2].username}</div>
+                <div className="score">
+                  {rows[2].score.toLocaleString("es-ES")}
+                </div>
+                <div className="date">{rows[2].date}</div>
               </div>
-              <div className="dt">11/05/2026</div>
             </div>
-          </>
-        )}
-      </div>
+          )}
+
+          <div className="hall-table">
+            <div className="th">
+              <div>RANGO</div>
+              <div>JUGADOR</div>
+              <div>PUNTUACIÓN</div>
+              <div>FECHA</div>
+            </div>
+            {rows.map((r, i) => (
+              <div
+                key={r.username}
+                className={
+                  "tr" +
+                  (i === 0
+                    ? " top1"
+                    : i === 1
+                      ? " top2"
+                      : i === 2
+                        ? " top3"
+                        : "")
+                }
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+                <div className="pl">{r.username}</div>
+                <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+                <div className="dt">{r.date}</div>
+              </div>
+            ))}
+            {you && (
+              <>
+                <div className="tr you-label">
+                  ▸ TU MEJOR MARCA EN {game.title}
+                </div>
+                <div
+                  className="tr you"
+                  style={{ animationDelay: `${rows.length * 50 + 50}ms` }}
+                >
+                  <div className="rk" style={{ color: "var(--yellow)" }}>
+                    #{String(you.rank).padStart(2, "0")}
+                  </div>
+                  <div className="pl" style={{ color: "var(--yellow)" }}>
+                    {you.username}
+                  </div>
+                  <div
+                    className="sc"
+                    style={{
+                      color: "var(--yellow)",
+                      textShadow: "0 0 6px rgba(245,255,0,0.5)",
+                    }}
+                  >
+                    {you.score.toLocaleString("es-ES")}
+                  </div>
+                  <div className="dt">{you.date}</div>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       <div style={{ textAlign: "center", marginTop: 32 }}>
         <button className="btn lg" onClick={() => router.push("/biblioteca")}>

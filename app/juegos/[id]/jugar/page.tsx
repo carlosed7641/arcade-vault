@@ -1,38 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
+import {
+  AsteroidsCanvas,
+  type AsteroidsCanvasHandle,
+} from "@/components/games/asteroids/AsteroidsCanvas";
 
 export default function GamePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, saveScore } = useAuth();
   const game = GAMES.find((g) => g.id === id);
+  const isAsteroids = id === "rocas";
 
   const [score, setScore] = useState(0);
-  const [lives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user ? user.name : "INVITADO");
   const [saved, setSaved] = useState(false);
+  const [asteroidsLives, setAsteroidsLives] = useState(3);
+  const [asteroidsLevel, setAsteroidsLevel] = useState(1);
+  const asteroidsRef = useRef<AsteroidsCanvasHandle>(null);
 
-  const level = Math.floor(score / 2500) + 1;
+  const lives = isAsteroids ? asteroidsLives : 3;
+  const level = isAsteroids ? asteroidsLevel : Math.floor(score / 2500) + 1;
+  const displayName = user ? user.username : "INVITADO";
 
   useEffect(() => {
-    if (over || paused) return;
+    if (isAsteroids || over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
-      220
+      220,
     );
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isAsteroids, over, paused]);
+
+  useEffect(() => {
+    if (!over || !user || saved) return;
+    let cancelled = false;
+    saveScore({ game: id, score }).then(() => {
+      if (!cancelled) setSaved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [over, user, saved]);
 
   if (!game) notFound();
 
-  const endGame = () => setOver(true);
+  const handleAsteroidsGameOver = (finalScore: number) => {
+    setScore(finalScore);
+    setOver(true);
+  };
+
+  const endGame = () => {
+    if (isAsteroids) {
+      asteroidsRef.current?.forceGameOver();
+    } else {
+      setOver(true);
+    }
+  };
+  const togglePause = () => {
+    const next = !paused;
+    setPaused(next);
+    if (isAsteroids) asteroidsRef.current?.setPaused(next);
+  };
   const restart = () => {
+    if (isAsteroids) asteroidsRef.current?.restart();
     setScore(0);
     setPaused(false);
     setOver(false);
@@ -46,7 +83,7 @@ export default function GamePlayerPage() {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: "var(--ink)" }}>
-              {name}
+              {displayName}
             </div>
           </div>
           <div className="hud-stat">
@@ -63,7 +100,7 @@ export default function GamePlayerPage() {
           </div>
         </div>
         <div className="hud-actions">
-          <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
+          <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
           <button className="btn magenta" onClick={endGame}>
@@ -80,13 +117,23 @@ export default function GamePlayerPage() {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
-          </div>
+          {isAsteroids ? (
+            <AsteroidsCanvas
+              ref={asteroidsRef}
+              onScoreChange={setScore}
+              onLivesChange={setAsteroidsLives}
+              onLevelChange={setAsteroidsLevel}
+              onGameOver={handleAsteroidsGameOver}
+            />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor"></div>
+              <div className="enemy e1"></div>
+              <div className="enemy e2"></div>
+              <div className="enemy e3"></div>
+              <div className="player-ship"></div>
+            </div>
+          )}
           {paused && (
             <div
               className="crt-content"
@@ -124,33 +171,25 @@ export default function GamePlayerPage() {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) =>
-                    setName(e.target.value.toUpperCase().slice(0, 10))
-                  }
-                  placeholder="TUS INICIALES"
-                />
-                <button
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+            {user ? (
+              saved ? (
+                <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+              ) : (
+                <div className="toast-saved">▸ GUARDANDO PUNTUACIÓN…</div>
+              )
             ) : (
-              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+              <div className="toast-saved">
+                ▸ INICIA SESIÓN PARA GUARDAR TU PUNTUACIÓN_
+              </div>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>
                 JUGAR DE NUEVO
               </button>
-              <button className="btn magenta" onClick={() => router.push("/biblioteca")}>
+              <button
+                className="btn magenta"
+                onClick={() => router.push("/biblioteca")}
+              >
                 VOLVER AL VAULT
               </button>
             </div>
