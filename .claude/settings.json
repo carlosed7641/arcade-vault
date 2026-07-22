@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c);process.stdin.on(\"end\",()=>{try{const j=JSON.parse(d);process.stdout.write(j.tool_response?.filePath||j.tool_input?.file_path||\"\")}catch(e){}})'); case \"$f\" in *.tsx|*.jsx|*.ts|*.js) npx prettier --write \"$f\" && npx eslint --fix \"$f\" ;; *.md|*.mdx) npx prettier --write \"$f\" ;; esac 2>/dev/null || true",
+            "statusMessage": "Prettier + ESLint..."
+          }
+        ]
+      }
+    ]
+  }
+}
