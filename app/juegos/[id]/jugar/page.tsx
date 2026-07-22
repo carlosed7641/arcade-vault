@@ -15,19 +15,31 @@ export default function GamePlayerPage() {
   const [lives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user ? user.name : "INVITADO");
   const [saved, setSaved] = useState(false);
 
   const level = Math.floor(score / 2500) + 1;
+  const displayName = user ? user.username : "INVITADO";
 
   useEffect(() => {
     if (over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
-      220
+      220,
     );
     return () => clearInterval(t);
   }, [over, paused]);
+
+  useEffect(() => {
+    if (!over || !user || saved) return;
+    let cancelled = false;
+    saveScore({ game: id, score }).then(() => {
+      if (!cancelled) setSaved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [over, user, saved]);
 
   if (!game) notFound();
 
@@ -46,7 +58,7 @@ export default function GamePlayerPage() {
           <div className="hud-stat">
             <div className="l">Jugador</div>
             <div className="v" style={{ color: "var(--ink)" }}>
-              {name}
+              {displayName}
             </div>
           </div>
           <div className="hud-stat">
@@ -124,33 +136,25 @@ export default function GamePlayerPage() {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) =>
-                    setName(e.target.value.toUpperCase().slice(0, 10))
-                  }
-                  placeholder="TUS INICIALES"
-                />
-                <button
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+            {user ? (
+              saved ? (
+                <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+              ) : (
+                <div className="toast-saved">▸ GUARDANDO PUNTUACIÓN…</div>
+              )
             ) : (
-              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+              <div className="toast-saved">
+                ▸ INICIA SESIÓN PARA GUARDAR TU PUNTUACIÓN_
+              </div>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>
                 JUGAR DE NUEVO
               </button>
-              <button className="btn magenta" onClick={() => router.push("/biblioteca")}>
+              <button
+                className="btn magenta"
+                onClick={() => router.push("/biblioteca")}
+              >
                 VOLVER AL VAULT
               </button>
             </div>
