@@ -1,6 +1,6 @@
 # SPEC 05 — Juego real de Asteroids (ROCAS)
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01 (MVP visual/pantallas), SPEC 04 (Supabase auth y scores)
 > **Fecha:** 2026-07-22
 > **Objetivo:** Reemplazar la simulación falsa de `/juegos/rocas/jugar` (score aleatorio + sprites CSS decorativos) por el juego real de Asteroids de `references/templates/started-games/02-asteroids/`, portado a un componente TypeScript de React que se integra con el HUD, el sistema de pausa, el modal de fin de partida y el guardado de puntajes ya existentes.
@@ -97,22 +97,22 @@ type Props = {
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` finaliza sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] En `/juegos/rocas/jugar`, el canvas real de Asteroids se muestra dentro de `.crt-screen` en vez de los sprites CSS decorativos (`.enemy`, `.player-ship`, `.grid-floor`).
-- [ ] Los controles de teclado (`←` `→` rotar, `↑` propulsar, `Espacio` disparar) responden dentro del canvas, y no scrollean ni afectan el resto de la página mientras se juega.
-- [ ] Los asteroides grandes se parten en medianos y estos en pequeños al ser destruidos por una bala; los pequeños no se parten más.
-- [ ] El power-up de disparo triple aparece durante la partida y, al recogerlo, la nave dispara 3 balas en abanico durante su duración.
-- [ ] El HUD dibujado en el canvas (score/nivel/vidas/power-up) y el HUD externo en React (Jugador/Puntuación/Vidas/Nivel) muestran siempre los mismos valores entre sí.
-- [ ] El botón "PAUSA" congela el juego (nave, asteroides, balas dejan de moverse) y "REANUDAR" lo retoma exactamente donde quedó.
-- [ ] El botón "FIN" termina la partida inmediatamente con el score acumulado hasta ese momento, sin importar las vidas restantes, y abre el modal de fin de partida.
-- [ ] Perder las 3 vidas (colisión nave-asteroide) abre automáticamente el modal de fin de partida con el score final.
-- [ ] "JUGAR DE NUEVO" reinicia una partida limpia: score en 0, vidas en 3, nivel en 1, en ambos HUD.
-- [ ] Presionar Espacio estando en el modal de fin de partida (canvas detrás en `'gameover'`) NO reinicia el juego por sí solo — solo el botón del modal reinicia.
-- [ ] Salir de la partida (botón "SALIR" o navegar a otra ruta) detiene el loop del juego y remueve los listeners de teclado (verificable en DevTools: sin `requestAnimationFrame` activo ni listeners acumulados tras entrar/salir varias veces).
-- [ ] Terminar una partida real de `rocas` estando autenticado guarda el score real (no simulado) en la tabla `scores` y aparece en `/salon-de-la-fama` para ese juego.
-- [ ] Terminar una partida de `rocas` como invitado no guarda ningún score (comportamiento ya existente, sin cambios).
-- [ ] Cualquier otro juego del catálogo (`bloque-buster`, `caida`, etc.) en `/juegos/[id]/jugar` sigue mostrando la simulación falsa exactamente igual que antes de esta spec.
+- [x] `npm run build` finaliza sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] En `/juegos/rocas/jugar`, el canvas real de Asteroids se muestra dentro de `.crt-screen` en vez de los sprites CSS decorativos (`.enemy`, `.player-ship`, `.grid-floor`).
+- [x] Los controles de teclado (`←` `→` rotar, `↑` propulsar, `Espacio` disparar) responden dentro del canvas, y no scrollean ni afectan el resto de la página mientras se juega.
+- [x] Los asteroides grandes se parten en medianos y estos en pequeños al ser destruidos por una bala; los pequeños no se parten más.
+- [x] El power-up de disparo triple aparece durante la partida y, al recogerlo, la nave dispara 3 balas en abanico durante su duración.
+- [x] El HUD dibujado en el canvas (score/nivel/vidas/power-up) y el HUD externo en React (Jugador/Puntuación/Vidas/Nivel) muestran siempre los mismos valores entre sí.
+- [x] El botón "PAUSA" congela el juego (nave, asteroides, balas dejan de moverse) y "REANUDAR" lo retoma exactamente donde quedó.
+- [x] El botón "FIN" termina la partida inmediatamente con el score acumulado hasta ese momento, sin importar las vidas restantes, y abre el modal de fin de partida.
+- [x] Perder las 3 vidas (colisión nave-asteroide) abre automáticamente el modal de fin de partida con el score final.
+- [x] "JUGAR DE NUEVO" reinicia una partida limpia: score en 0, vidas en 3, nivel en 1, en ambos HUD.
+- [x] Presionar Espacio estando en el modal de fin de partida (canvas detrás en `'gameover'`) NO reinicia el juego por sí solo — solo el botón del modal reinicia.
+- [x] Salir de la partida (botón "SALIR" o navegar a otra ruta) detiene el loop del juego y remueve los listeners de teclado (verificable en DevTools: sin `requestAnimationFrame` activo ni listeners acumulados tras entrar/salir varias veces).
+- [x] Terminar una partida real de `rocas` estando autenticado guarda el score real (no simulado) en la tabla `scores` y aparece en `/salon-de-la-fama` para ese juego.
+- [x] Terminar una partida de `rocas` como invitado no guarda ningún score (comportamiento ya existente, sin cambios).
+- [x] Cualquier otro juego del catálogo (`bloque-buster`, `caida`, etc.) en `/juegos/[id]/jugar` sigue mostrando la simulación falsa exactamente igual que antes de esta spec.
 
 ## Decisiones
 

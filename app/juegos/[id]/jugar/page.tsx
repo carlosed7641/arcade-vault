@@ -1,33 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
+import {
+  AsteroidsCanvas,
+  type AsteroidsCanvasHandle,
+} from "@/components/games/asteroids/AsteroidsCanvas";
 
 export default function GamePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, saveScore } = useAuth();
   const game = GAMES.find((g) => g.id === id);
+  const isAsteroids = id === "rocas";
 
   const [score, setScore] = useState(0);
-  const [lives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [asteroidsLives, setAsteroidsLives] = useState(3);
+  const [asteroidsLevel, setAsteroidsLevel] = useState(1);
+  const asteroidsRef = useRef<AsteroidsCanvasHandle>(null);
 
-  const level = Math.floor(score / 2500) + 1;
+  const lives = isAsteroids ? asteroidsLives : 3;
+  const level = isAsteroids ? asteroidsLevel : Math.floor(score / 2500) + 1;
   const displayName = user ? user.username : "INVITADO";
 
   useEffect(() => {
-    if (over || paused) return;
+    if (isAsteroids || over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isAsteroids, over, paused]);
 
   useEffect(() => {
     if (!over || !user || saved) return;
@@ -43,8 +51,25 @@ export default function GamePlayerPage() {
 
   if (!game) notFound();
 
-  const endGame = () => setOver(true);
+  const handleAsteroidsGameOver = (finalScore: number) => {
+    setScore(finalScore);
+    setOver(true);
+  };
+
+  const endGame = () => {
+    if (isAsteroids) {
+      asteroidsRef.current?.forceGameOver();
+    } else {
+      setOver(true);
+    }
+  };
+  const togglePause = () => {
+    const next = !paused;
+    setPaused(next);
+    if (isAsteroids) asteroidsRef.current?.setPaused(next);
+  };
   const restart = () => {
+    if (isAsteroids) asteroidsRef.current?.restart();
     setScore(0);
     setPaused(false);
     setOver(false);
@@ -75,7 +100,7 @@ export default function GamePlayerPage() {
           </div>
         </div>
         <div className="hud-actions">
-          <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
+          <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
           <button className="btn magenta" onClick={endGame}>
@@ -92,13 +117,23 @@ export default function GamePlayerPage() {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
-          </div>
+          {isAsteroids ? (
+            <AsteroidsCanvas
+              ref={asteroidsRef}
+              onScoreChange={setScore}
+              onLivesChange={setAsteroidsLives}
+              onLevelChange={setAsteroidsLevel}
+              onGameOver={handleAsteroidsGameOver}
+            />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor"></div>
+              <div className="enemy e1"></div>
+              <div className="enemy e2"></div>
+              <div className="enemy e3"></div>
+              <div className="player-ship"></div>
+            </div>
+          )}
           {paused && (
             <div
               className="crt-content"

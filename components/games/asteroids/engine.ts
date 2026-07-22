@@ -572,7 +572,6 @@ export function createEngine(
     drawHUD();
 
     if (state === "gameover") drawOverlay("GAME OVER", `PUNTAJE: ${score}`);
-    if (paused) drawOverlay("PAUSA", "");
   }
 
   function loop(ts: number) {
