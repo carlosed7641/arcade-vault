@@ -30,7 +30,10 @@ export function Nav() {
           <Link href="/" className={isActive("/") ? "active" : ""}>
             Inicio
           </Link>
-          <Link href="/biblioteca" className={isActive("/biblioteca") ? "active" : ""}>
+          <Link
+            href="/biblioteca"
+            className={isActive("/biblioteca") ? "active" : ""}
+          >
             Biblioteca
           </Link>
           <Link
@@ -39,7 +42,10 @@ export function Nav() {
           >
             Salón de la Fama
           </Link>
-          <Link href="/acerca-de" className={isActive("/acerca-de") ? "active" : ""}>
+          <Link
+            href="/acerca-de"
+            className={isActive("/acerca-de") ? "active" : ""}
+          >
             Acerca de
           </Link>
         </div>
@@ -50,7 +56,7 @@ export function Nav() {
         </div>
         {user ? (
           <button className="btn ghost auth-btn" onClick={logout}>
-            {user.name} ▾
+            {user.username} ▾
           </button>
         ) : (
           <Link href="/login" className="btn auth-btn">
@@ -71,10 +77,17 @@ export function Nav() {
         onClick={close}
       ></div>
       <aside className={"av-mobile-panel" + (open ? " open" : "")}>
-        <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
+        <div
+          className="pixel neon-cyan"
+          style={{ fontSize: 11, marginBottom: 16 }}
+        >
           MENÚ
         </div>
-        <Link href="/" className={isActive("/") ? "active" : ""} onClick={close}>
+        <Link
+          href="/"
+          className={isActive("/") ? "active" : ""}
+          onClick={close}
+        >
           Inicio
         </Link>
         <Link
@@ -108,7 +121,11 @@ export function Nav() {
         <div style={{ flex: 1 }}></div>
         <div
           className="pixel"
-          style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.16em" }}
+          style={{
+            fontSize: 9,
+            color: "var(--ink-faint)",
+            letterSpacing: "0.16em",
+          }}
         >
           CRÉDITOS · 03
         </div>

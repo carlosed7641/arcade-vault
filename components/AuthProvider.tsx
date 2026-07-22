@@ -7,79 +7,72 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-export type User = { name: string } | null;
-
-export type SavedScore = {
-  game: string;
-  score: number;
-  name: string;
-  at: number;
-};
+export type User = { id: string; username: string } | null;
 
 type AuthContextValue = {
   user: User;
-  login: (user: User) => void;
-  logout: () => void;
-  saveScore: (entry: Omit<SavedScore, "at">) => void;
+  logout: () => Promise<void>;
+  saveScore: (entry: { game: string; score: number }) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const USER_KEY = "av_user";
-const SCORES_KEY = "av_scores";
+async function fetchProfile(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<User> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User>(null);
+  return data ? { id: userId, username: data.username } : null;
+}
+
+export function AuthProvider({
+  children,
+  initialUser = null,
+}: {
+  children: ReactNode;
+  initialUser?: User;
+}) {
+  const [user, setUser] = useState<User>(initialUser);
 
   useEffect(() => {
-    // One-time sync from localStorage (client-only) into the null default
-    // used for the server-rendered pass, per the spec's hydration mitigation.
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (stored) setUser(JSON.parse(stored));
-    } catch {
-      // localStorage unavailable — session stays unauthenticated.
-    }
+    const supabase = createClient();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setUser(null);
+        return;
+      }
+      setUser(await fetchProfile(supabase, session.user.id));
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (nextUser: User) => {
-    setUser(nextUser);
-    try {
-      if (nextUser) {
-        localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
-      } else {
-        localStorage.removeItem(USER_KEY);
-      }
-    } catch {
-      // localStorage unavailable — session won't persist across reloads.
-    }
-  };
-
-  const logout = () => {
+  const logout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     setUser(null);
-    try {
-      localStorage.removeItem(USER_KEY);
-    } catch {
-      // localStorage unavailable.
-    }
   };
 
-  const saveScore = (entry: Omit<SavedScore, "at">) => {
-    try {
-      const all: SavedScore[] = JSON.parse(
-        localStorage.getItem(SCORES_KEY) || "[]"
-      );
-      all.push({ ...entry, at: Date.now() });
-      localStorage.setItem(SCORES_KEY, JSON.stringify(all));
-    } catch {
-      // localStorage unavailable — score won't persist.
-    }
+  const saveScore = async (entry: { game: string; score: number }) => {
+    if (!user) return;
+    const supabase = createClient();
+    await supabase
+      .from("scores")
+      .insert({ user_id: user.id, game_id: entry.game, score: entry.score });
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, saveScore }}>
+    <AuthContext.Provider value={{ user, logout, saveScore }}>
       {children}
     </AuthContext.Provider>
   );

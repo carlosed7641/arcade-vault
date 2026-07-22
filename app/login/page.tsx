@@ -1,25 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/AuthProvider";
+import { signin, signup } from "./actions";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    login({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    router.push("/biblioteca");
+    setError(null);
+
+    startTransition(async () => {
+      const res =
+        tab === "in"
+          ? await signin({ username: user, password: pass })
+          : await signup({ username: user, email, password: pass });
+
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+
+      router.push("/biblioteca");
+      router.refresh();
+    });
   };
 
   const playAsGuest = () => {
-    login(null);
     router.push("/biblioteca");
   };
 
@@ -31,17 +45,34 @@ export default function LoginPage() {
           <h2 className="neon-cyan">ARCADE VAULT</h2>
           <div
             className="mono"
-            style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.16em", marginTop: 6 }}
+            style={{
+              fontSize: 11,
+              color: "var(--ink-faint)",
+              letterSpacing: "0.16em",
+              marginTop: 6,
+            }}
           >
             ACCESO AL SISTEMA · v2.6
           </div>
         </div>
 
         <div className="auth-tabs">
-          <button className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>
+          <button
+            className={tab === "in" ? "on" : ""}
+            onClick={() => {
+              setTab("in");
+              setError(null);
+            }}
+          >
             INICIAR SESIÓN
           </button>
-          <button className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>
+          <button
+            className={tab === "up" ? "on" : ""}
+            onClick={() => {
+              setTab("up");
+              setError(null);
+            }}
+          >
             CREAR CUENTA
           </button>
         </div>
@@ -76,8 +107,19 @@ export default function LoginPage() {
             />
           </div>
 
-          <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
+          {error && <div className="form-error">{error}</div>}
+
+          <button
+            className="btn lg"
+            type="submit"
+            disabled={isPending}
+            style={{ width: "100%", marginTop: 8 }}
+          >
+            {isPending
+              ? "▶ ENTRANDO…"
+              : tab === "in"
+                ? "ENTRAR AL VAULT"
+                : "CREAR Y JUGAR"}
           </button>
         </form>
 
@@ -91,11 +133,23 @@ export default function LoginPage() {
 
         <div className="auth-divider">O CONTINÚA CON</div>
         <div className="social">
-          <button className="btn ghost" type="button">◆  GOOGLE</button>
-          <button className="btn ghost" type="button">▣  GITHUB</button>
+          <button className="btn ghost" type="button">
+            ◆ GOOGLE
+          </button>
+          <button className="btn ghost" type="button">
+            ▣ GITHUB
+          </button>
         </div>
 
-        <div style={{ marginTop: 18, textAlign: "center", fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>
+        <div
+          style={{
+            marginTop: 18,
+            textAlign: "center",
+            fontSize: 11,
+            color: "var(--ink-faint)",
+            letterSpacing: "0.1em",
+          }}
+        >
           AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE
         </div>
       </div>
