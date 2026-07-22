@@ -1,6 +1,6 @@
 # SPEC 04 — Autenticación y puntajes reales con Supabase
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01, SPEC 02
 > **Fecha:** 2026-07-22
 > **Objetivo:** Reemplazar el login/registro simulado (`AuthProvider` basado en `localStorage`) por autenticación real con Supabase Auth (email/contraseña, resuelta por username) y persistir los puntajes de partidas en una tabla `scores` de Supabase, mostrando datos reales en el Salón de la Fama en vez de `seededScores`.
@@ -134,21 +134,21 @@ Convenciones:
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` finaliza sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] Las tablas `profiles` y `scores` existen en el proyecto de Supabase, con RLS activado y las políticas descritas en Modelo de datos (`mcp__supabase__get_advisors` no reporta alertas de seguridad sobre RLS en estas tablas).
-- [ ] `.env.template` incluye `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY` como placeholders, sin valores reales.
-- [ ] Crear una cuenta nueva en `/login` (pestaña CREAR CUENTA) con username, correo y contraseña crea el usuario en Supabase Auth, crea su fila en `profiles`, inicia sesión automáticamente (sin requerir confirmación de correo) y navega a `/biblioteca`.
-- [ ] Intentar crear una cuenta con un username ya existente muestra un error visible en el formulario y no crea una segunda fila en `profiles`.
-- [ ] Cerrar sesión (botón del Nav) y volver a iniciar sesión en `/login` (pestaña INICIAR SESIÓN) usando solo username + contraseña autentica correctamente sin pedir correo.
-- [ ] Iniciar sesión con un username inexistente o una contraseña incorrecta muestra el mismo mensaje de error genérico ("Usuario o contraseña incorrectos") en ambos casos.
-- [ ] "JUGAR COMO INVITADO" sigue funcionando: navega a `/biblioteca` con `user = null`, sin crear sesión de Supabase ni fila en `profiles`.
-- [ ] Recargar la página estando autenticado no muestra un parpadeo del Nav en estado "no autenticado" antes de reflejar la sesión real.
-- [ ] Terminar una partida en `/juegos/[id]/jugar` estando autenticado inserta una fila en `scores` con el `user_id`, `game_id` y `score` correctos.
-- [ ] Terminar una partida como invitado NO inserta ninguna fila en `scores`.
-- [ ] `/salon-de-la-fama`, al seleccionar un juego con puntajes reales guardados, muestra esos puntajes (username y score reales) en vez de `seededScores`.
-- [ ] `/salon-de-la-fama`, al seleccionar un juego sin puntajes reales todavía, muestra un estado vacío explícito en vez de datos falsos.
-- [ ] Un usuario autenticado no puede insertar un puntaje con `user_id` distinto al suyo (verificar que la política RLS de `scores` rechaza el intento, por ejemplo probando con la API REST de Supabase con un JWT de otro usuario).
+- [x] `npm run build` finaliza sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] Las tablas `profiles` y `scores` existen en el proyecto de Supabase, con RLS activado y las políticas descritas en Modelo de datos (`mcp__supabase__get_advisors` no reporta alertas de seguridad sobre RLS en estas tablas).
+- [x] `.env.template` incluye `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY` como placeholders, sin valores reales.
+- [x] Crear una cuenta nueva en `/login` (pestaña CREAR CUENTA) con username, correo y contraseña crea el usuario en Supabase Auth, crea su fila en `profiles`, inicia sesión automáticamente (sin requerir confirmación de correo) y navega a `/biblioteca`.
+- [x] Intentar crear una cuenta con un username ya existente muestra un error visible en el formulario y no crea una segunda fila en `profiles`.
+- [x] Cerrar sesión (botón del Nav) y volver a iniciar sesión en `/login` (pestaña INICIAR SESIÓN) usando solo username + contraseña autentica correctamente sin pedir correo.
+- [x] Iniciar sesión con un username inexistente o una contraseña incorrecta muestra el mismo mensaje de error genérico ("Usuario o contraseña incorrectos") en ambos casos.
+- [x] "JUGAR COMO INVITADO" sigue funcionando: navega a `/biblioteca` con `user = null`, sin crear sesión de Supabase ni fila en `profiles`.
+- [x] Recargar la página estando autenticado no muestra un parpadeo del Nav en estado "no autenticado" antes de reflejar la sesión real.
+- [x] Terminar una partida en `/juegos/[id]/jugar` estando autenticado inserta una fila en `scores` con el `user_id`, `game_id` y `score` correctos.
+- [x] Terminar una partida como invitado NO inserta ninguna fila en `scores`.
+- [x] `/salon-de-la-fama`, al seleccionar un juego con puntajes reales guardados, muestra esos puntajes (username y score reales) en vez de `seededScores`.
+- [x] `/salon-de-la-fama`, al seleccionar un juego sin puntajes reales todavía, muestra un estado vacío explícito en vez de datos falsos.
+- [x] Un usuario autenticado no puede insertar un puntaje con `user_id` distinto al suyo (verificar que la política RLS de `scores` rechaza el intento, por ejemplo probando con la API REST de Supabase con un JWT de otro usuario).
 
 ## Decisiones
 
