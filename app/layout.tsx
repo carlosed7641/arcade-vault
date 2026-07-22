@@ -64,7 +64,10 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <div className="av-bg" />
         <div className="av-noise" />
-        <AuthProvider initialUser={initialUser}>
+        <AuthProvider
+          key={initialUser?.id ?? "guest"}
+          initialUser={initialUser}
+        >
           <Nav />
           <main className="av-main">{children}</main>
           <footer

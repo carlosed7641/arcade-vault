@@ -18,14 +18,13 @@ export default function HallOfFamePage() {
   const { user } = useAuth();
   const [tab, setTab] = useState(GAMES[0].id);
   const [rows, setRows] = useState<HallRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataTab, setDataTab] = useState<string | null>(null);
+  const loading = dataTab !== tab;
 
   const game = GAMES.find((g) => g.id === tab)!;
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-
     const supabase = createClient();
     supabase
       .from("scores")
@@ -38,12 +37,12 @@ export default function HallOfFamePage() {
 
         const seen = new Set<string>();
         const best: HallRow[] = [];
-        for (const entry of (data ?? []) as Array<{
+        for (const entry of (data ?? []) as unknown as Array<{
           score: number;
           created_at: string;
-          profiles: { username: string }[];
+          profiles: { username: string } | null;
         }>) {
-          const username = entry.profiles?.[0]?.username;
+          const username = entry.profiles?.username;
           if (!username || seen.has(username)) continue;
           seen.add(username);
           best.push({
@@ -56,7 +55,7 @@ export default function HallOfFamePage() {
         }
 
         setRows(best);
-        setLoading(false);
+        setDataTab(tab);
       });
 
     return () => {
