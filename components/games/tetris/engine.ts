@@ -403,6 +403,10 @@ export function createEngine(
     restart() {
       paused = false;
       initGame();
+      if (running && animationFrame === null) {
+        lastTime = null;
+        animationFrame = requestAnimationFrame(loop);
+      }
     },
     forceGameOver() {
       if (gameOver) return;

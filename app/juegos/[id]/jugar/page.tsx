@@ -1,41 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type RefAttributes,
+} from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
-import {
-  AsteroidsCanvas,
-  type AsteroidsCanvasHandle,
-} from "@/components/games/asteroids/AsteroidsCanvas";
+import { AsteroidsCanvas } from "@/components/games/asteroids/AsteroidsCanvas";
+import { TetrisCanvas } from "@/components/games/tetris/TetrisCanvas";
+
+type RealGameHandle = {
+  restart: () => void;
+  setPaused: (paused: boolean) => void;
+  forceGameOver: () => void;
+};
+
+type RealGameProps = {
+  onScoreChange: (score: number) => void;
+  onLivesChange: (lives: number) => void;
+  onLevelChange: (level: number) => void;
+  onGameOver: (finalScore: number) => void;
+};
+
+const REAL_GAMES: Record<
+  string,
+  ComponentType<RealGameProps & RefAttributes<RealGameHandle>>
+> = {
+  rocas: AsteroidsCanvas,
+  tetris: TetrisCanvas,
+};
 
 export default function GamePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, saveScore } = useAuth();
   const game = GAMES.find((g) => g.id === id);
-  const isAsteroids = id === "rocas";
+  const RealCanvas = REAL_GAMES[id];
 
   const [score, setScore] = useState(0);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [asteroidsLives, setAsteroidsLives] = useState(3);
-  const [asteroidsLevel, setAsteroidsLevel] = useState(1);
-  const asteroidsRef = useRef<AsteroidsCanvasHandle>(null);
+  const [realGameLives, setRealGameLives] = useState(3);
+  const [realGameLevel, setRealGameLevel] = useState(1);
+  const realGameRef = useRef<RealGameHandle>(null);
 
-  const lives = isAsteroids ? asteroidsLives : 3;
-  const level = isAsteroids ? asteroidsLevel : Math.floor(score / 2500) + 1;
+  const lives = RealCanvas ? realGameLives : 3;
+  const level = RealCanvas ? realGameLevel : Math.floor(score / 2500) + 1;
   const displayName = user ? user.username : "INVITADO";
 
   useEffect(() => {
-    if (isAsteroids || over || paused) return;
+    if (RealCanvas || over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(t);
-  }, [isAsteroids, over, paused]);
+  }, [RealCanvas, over, paused]);
 
   useEffect(() => {
     if (!over || !user || saved) return;
@@ -51,14 +76,14 @@ export default function GamePlayerPage() {
 
   if (!game) notFound();
 
-  const handleAsteroidsGameOver = (finalScore: number) => {
+  const handleRealGameOver = (finalScore: number) => {
     setScore(finalScore);
     setOver(true);
   };
 
   const endGame = () => {
-    if (isAsteroids) {
-      asteroidsRef.current?.forceGameOver();
+    if (RealCanvas) {
+      realGameRef.current?.forceGameOver();
     } else {
       setOver(true);
     }
@@ -66,10 +91,10 @@ export default function GamePlayerPage() {
   const togglePause = () => {
     const next = !paused;
     setPaused(next);
-    if (isAsteroids) asteroidsRef.current?.setPaused(next);
+    if (RealCanvas) realGameRef.current?.setPaused(next);
   };
   const restart = () => {
-    if (isAsteroids) asteroidsRef.current?.restart();
+    if (RealCanvas) realGameRef.current?.restart();
     setScore(0);
     setPaused(false);
     setOver(false);
@@ -117,13 +142,13 @@ export default function GamePlayerPage() {
 
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroids ? (
-            <AsteroidsCanvas
-              ref={asteroidsRef}
+          {RealCanvas ? (
+            <RealCanvas
+              ref={realGameRef}
               onScoreChange={setScore}
-              onLivesChange={setAsteroidsLives}
-              onLevelChange={setAsteroidsLevel}
-              onGameOver={handleAsteroidsGameOver}
+              onLivesChange={setRealGameLives}
+              onLevelChange={setRealGameLevel}
+              onGameOver={handleRealGameOver}
             />
           ) : (
             <div className="game-arena">
