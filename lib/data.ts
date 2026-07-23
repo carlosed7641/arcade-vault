@@ -43,6 +43,17 @@ export const GAMES: Game[] = [
     plays: "31.8K",
   },
   {
+    id: "tetris",
+    title: "TETRIS",
+    short: "Encaja las piezas antes de que el techo te aplaste.",
+    long: "Piezas geométricas descienden desde la oscuridad. Rótalas, encástralas y limpia líneas para sobrevivir. La velocidad aumenta sin piedad cada 10 líneas.",
+    cat: "PUZZLE",
+    cover: "cover-tetris",
+    color: "cyan",
+    best: 150000,
+    plays: "12.4K",
+  },
+  {
     id: "serpentina",
     title: "SERPENTINA",
     short: "Crece sin morder tu propia cola.",
@@ -119,9 +130,24 @@ export const CATS: ("TODOS" | GameCategory)[] = [
 ];
 
 export const PLAYERS: string[] = [
-  "PX_KAI", "NEONFOX", "Z3R0COOL", "M00NRYU", "VAULT_07", "GLITCHA",
-  "ATARI_KID", "CYBER_LU", "MAGENTA88", "SCANLINE", "BIT_LORD", "ARKADYA",
-  "DROID_X", "RGB_QUEEN", "PIXEL_DAD", "RETROVIRA", "VECTORX", "JOY_STK",
+  "PX_KAI",
+  "NEONFOX",
+  "Z3R0COOL",
+  "M00NRYU",
+  "VAULT_07",
+  "GLITCHA",
+  "ATARI_KID",
+  "CYBER_LU",
+  "MAGENTA88",
+  "SCANLINE",
+  "BIT_LORD",
+  "ARKADYA",
+  "DROID_X",
+  "RGB_QUEEN",
+  "PIXEL_DAD",
+  "RETROVIRA",
+  "VECTORX",
+  "JOY_STK",
 ];
 
 export function seededScores(seed: number, count = 12): ScoreRow[] {
@@ -139,7 +165,12 @@ export function seededScores(seed: number, count = 12): ScoreRow[] {
     const score = base - i * Math.floor(2000 + rand() * 4000);
     const day = String(1 + Math.floor(rand() * 28)).padStart(2, "0");
     const mon = String(1 + Math.floor(rand() * 12)).padStart(2, "0");
-    rows.push({ rank: i + 1, name, score: Math.max(score, 1000), date: `${day}/${mon}/2026` });
+    rows.push({
+      rank: i + 1,
+      name,
+      score: Math.max(score, 1000),
+      date: `${day}/${mon}/2026`,
+    });
   }
   return rows
     .sort((a, b) => b.score - a.score)
