@@ -1,6 +1,6 @@
 # SPEC 07 — Juego real de Tetris
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 05 (juego real de Asteroids), SPEC 06 (leaderboard real)
 > **Fecha:** 2026-07-23
 > **Objetivo:** Reemplazar la simulación falsa de `/juegos/tetris/jugar` por el juego real de `references/templates/started-games/03-tetris/`, portado a un componente TypeScript de React (tablero + preview de siguiente pieza) integrado al HUD, pausa, modal de fin de partida y guardado de puntajes ya existentes, agregando `tetris` como nueva entrada del catálogo.
@@ -121,24 +121,24 @@ Cumple exactamente `RealGameHandle`/`RealGameProps` de `architecture.md` §4 par
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` finaliza sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] `/juegos` muestra la card de TETRIS con la clase `.cover-tetris` aplicada.
-- [ ] En `/juegos/tetris/jugar`, el canvas real de Tetris (tablero + preview de siguiente pieza) se muestra dentro de `.crt-screen` en vez de la simulación falsa.
-- [ ] Los controles (`←` `→` mover, `↑`/`X` rotar, `↓` soft drop, `Espacio` hard drop) responden dentro del canvas y no scrollean la página.
-- [ ] Las piezas rotan con wall-kick (`[0,±1,±2]`), la pieza fantasma se dibuja en la posición de caída proyectada.
-- [ ] El preview de la siguiente pieza se actualiza correctamente cada vez que spawnea una nueva pieza.
-- [ ] Limpiar líneas suma el puntaje correcto (`LINE_SCORES[cleared] × level`) y la velocidad de caída aumenta cada 10 líneas acumuladas.
-- [ ] El HUD externo de React (Jugador/Puntuación/Vidas/Nivel) siempre muestra "Vidas: 0" y el resto de valores sincronizados con el engine.
-- [ ] El botón "PAUSA" congela el juego y "REANUDAR" lo retoma exactamente donde quedó; la tecla `P` ya no pausa nada.
-- [ ] El botón "FIN" termina la partida inmediatamente con el score acumulado y abre el modal de fin de partida.
-- [ ] Cuando una pieza nueva no puede spawnear (tablero lleno), se abre automáticamente el modal de fin de partida con el score final.
-- [ ] "JUGAR DE NUEVO" reinicia una partida limpia: score en 0, nivel en 1, tablero vacío.
-- [ ] Salir de la partida o navegar a otra ruta detiene el loop y remueve los listeners de teclado (verificable en DevTools sin `requestAnimationFrame` activo ni listeners acumulados).
-- [ ] Terminar una partida real de `tetris` estando autenticado guarda el score real en la tabla `scores` y aparece en `/juegos/tetris` y `/salon-de-la-fama`.
-- [ ] Terminar una partida de `tetris` como invitado no guarda ningún score.
-- [ ] `/juegos/rocas/jugar` (Asteroids) y el resto del catálogo con simulación falsa siguen funcionando exactamente igual que antes de esta spec.
-- [ ] La entrada `caida` en `lib/data.ts` y su comportamiento en `/juegos/caida` no cambiaron.
+- [x] `npm run build` finaliza sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] `/juegos` muestra la card de TETRIS con la clase `.cover-tetris` aplicada.
+- [x] En `/juegos/tetris/jugar`, el canvas real de Tetris (tablero + preview de siguiente pieza) se muestra dentro de `.crt-screen` en vez de la simulación falsa.
+- [x] Los controles (`←` `→` mover, `↑`/`X` rotar, `↓` soft drop, `Espacio` hard drop) responden dentro del canvas y no scrollean la página.
+- [x] Las piezas rotan con wall-kick (`[0,±1,±2]`), la pieza fantasma se dibuja en la posición de caída proyectada.
+- [x] El preview de la siguiente pieza se actualiza correctamente cada vez que spawnea una nueva pieza.
+- [x] Limpiar líneas suma el puntaje correcto (`LINE_SCORES[cleared] × level`) y la velocidad de caída aumenta cada 10 líneas acumuladas.
+- [x] El HUD externo de React (Jugador/Puntuación/Vidas/Nivel) siempre muestra "Vidas: 0" y el resto de valores sincronizados con el engine.
+- [x] El botón "PAUSA" congela el juego y "REANUDAR" lo retoma exactamente donde quedó; la tecla `P` ya no pausa nada.
+- [x] El botón "FIN" termina la partida inmediatamente con el score acumulado y abre el modal de fin de partida.
+- [x] Cuando una pieza nueva no puede spawnear (tablero lleno), se abre automáticamente el modal de fin de partida con el score final.
+- [x] "JUGAR DE NUEVO" reinicia una partida limpia: score en 0, nivel en 1, tablero vacío.
+- [x] Salir de la partida o navegar a otra ruta detiene el loop y remueve los listeners de teclado (verificable en DevTools sin `requestAnimationFrame` activo ni listeners acumulados).
+- [x] Terminar una partida real de `tetris` estando autenticado guarda el score real en la tabla `scores` y aparece en `/juegos/tetris` y `/salon-de-la-fama`.
+- [x] Terminar una partida de `tetris` como invitado no guarda ningún score.
+- [x] `/juegos/rocas/jugar` (Asteroids) y el resto del catálogo con simulación falsa siguen funcionando exactamente igual que antes de esta spec.
+- [x] La entrada `caida` en `lib/data.ts` y su comportamiento en `/juegos/caida` no cambiaron.
 
 ## Decisiones
 
