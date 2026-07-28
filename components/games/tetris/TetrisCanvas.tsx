@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { createEngine, type TetrisEngine } from "./engine";
+import { SKINS, DEFAULT_SKIN, type Skin } from "../skins";
 
 export type TetrisCanvasHandle = {
   restart: () => void;
@@ -14,11 +15,12 @@ type TetrisCanvasProps = {
   onLivesChange: (lives: number) => void;
   onLevelChange: (level: number) => void;
   onGameOver: (finalScore: number) => void;
+  skin?: Skin;
 };
 
 export const TetrisCanvas = forwardRef<TetrisCanvasHandle, TetrisCanvasProps>(
   function TetrisCanvas(
-    { onScoreChange, onLivesChange, onLevelChange, onGameOver },
+    { onScoreChange, onLivesChange, onLevelChange, onGameOver, skin },
     ref,
   ) {
     const boardRef = useRef<HTMLCanvasElement>(null);
@@ -36,12 +38,12 @@ export const TetrisCanvas = forwardRef<TetrisCanvasHandle, TetrisCanvasProps>(
       const nextCanvas = nextRef.current;
       if (!boardCanvas || !nextCanvas) return;
 
-      const engine = createEngine(boardCanvas, nextCanvas, {
-        onScoreChange,
-        onLivesChange,
-        onLevelChange,
-        onGameOver,
-      });
+      const engine = createEngine(
+        boardCanvas,
+        nextCanvas,
+        { onScoreChange, onLivesChange, onLevelChange, onGameOver },
+        skin ?? SKINS[DEFAULT_SKIN],
+      );
       engineRef.current = engine;
       engine.start();
 
@@ -51,6 +53,12 @@ export const TetrisCanvas = forwardRef<TetrisCanvasHandle, TetrisCanvasProps>(
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // El prop `skin` no recrea el engine — solo reasigna la variable de closure que
+    // `drawBlock`/`drawGrid` leen cada frame, vía `setSkin`.
+    useEffect(() => {
+      engineRef.current?.setSkin(skin ?? SKINS[DEFAULT_SKIN]);
+    }, [skin]);
 
     return (
       <div

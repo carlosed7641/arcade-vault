@@ -12,6 +12,19 @@ import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
 import { AsteroidsCanvas } from "@/components/games/asteroids/AsteroidsCanvas";
 import { TetrisCanvas } from "@/components/games/tetris/TetrisCanvas";
+import {
+  SKINS,
+  SKIN_IDS,
+  DEFAULT_SKIN,
+  type Skin,
+  type SkinId,
+} from "@/components/games/skins";
+
+const SKIN_STORAGE_KEY = "av-skin";
+
+function isSkinId(value: string | null): value is SkinId {
+  return !!value && (SKIN_IDS as readonly string[]).includes(value);
+}
 
 type RealGameHandle = {
   restart: () => void;
@@ -24,6 +37,7 @@ type RealGameProps = {
   onLivesChange: (lives: number) => void;
   onLevelChange: (level: number) => void;
   onGameOver: (finalScore: number) => void;
+  skin?: Skin;
 };
 
 const REAL_GAMES: Record<
@@ -47,11 +61,23 @@ export default function GamePlayerPage() {
   const [saved, setSaved] = useState(false);
   const [realGameLives, setRealGameLives] = useState(3);
   const [realGameLevel, setRealGameLevel] = useState(1);
+  // Lazy initializer: corre una sola vez al montar, en cliente. En SSR `window` no
+  // existe y cae al default, sin necesidad de un efecto que dispare un re-render extra.
+  const [skinId, setSkinId] = useState<SkinId>(() => {
+    if (typeof window === "undefined") return DEFAULT_SKIN;
+    const stored = window.localStorage.getItem(SKIN_STORAGE_KEY);
+    return isSkinId(stored) ? stored : DEFAULT_SKIN;
+  });
   const realGameRef = useRef<RealGameHandle>(null);
 
   const lives = RealCanvas ? realGameLives : 3;
   const level = RealCanvas ? realGameLevel : Math.floor(score / 2500) + 1;
   const displayName = user ? user.username : "INVITADO";
+
+  const chooseSkin = (next: SkinId) => {
+    setSkinId(next);
+    window.localStorage.setItem(SKIN_STORAGE_KEY, next);
+  };
 
   useEffect(() => {
     if (RealCanvas || over || paused) return;
@@ -125,6 +151,19 @@ export default function GamePlayerPage() {
           </div>
         </div>
         <div className="hud-actions">
+          {RealCanvas && (
+            <div style={{ display: "flex", gap: 6 }}>
+              {SKIN_IDS.map((id) => (
+                <button
+                  key={id}
+                  className={id === skinId ? "btn" : "btn ghost"}
+                  onClick={() => chooseSkin(id)}
+                >
+                  {SKINS[id].label.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
           <button className="btn yellow" onClick={togglePause}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
@@ -149,6 +188,7 @@ export default function GamePlayerPage() {
               onLivesChange={setRealGameLives}
               onLevelChange={setRealGameLevel}
               onGameOver={handleRealGameOver}
+              skin={SKINS[skinId]}
             />
           ) : (
             <div className="game-arena">
