@@ -32,6 +32,15 @@ Project skills live in `.claude/skills/` (also mirrored in `.agents/skills/`):
   `.claude/skills/add-game/architecture.md` for the exact technical contract (types, catalog
   shape, leaderboard contract, and divergence table between reference game templates).
 
+Agents live in `.claude/agents/`:
+
+- `game-planner` — analyzes the catalog and recommends which game to integrate next; keeps
+  memory in `references/game-suggestions.md`. Recommends only, doesn't implement.
+- `game-jam` — takes a free-form theme and designs a brand-new arcade game (reskin of a
+  classic mechanic) for it, writing two full specs into `specs/game-jam/<game-id>/` (engine+
+  canvas, then Vault integration) following the SPEC 05/07 format. Runs autonomously, keeps
+  memory in `references/game-jam-log.md`. Also doesn't implement — output feeds `/spec-impl`.
+
 ## Architecture
 
 - App Router. Source lives in `app/` at the repo root (no `src/` dir).
