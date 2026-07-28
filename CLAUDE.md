@@ -40,6 +40,11 @@ Agents live in `.claude/agents/`:
   classic mechanic) for it, writing two full specs into `specs/game-jam/<game-id>/` (engine+
   canvas, then Vault integration) following the SPEC 05/07 format. Runs autonomously, keeps
   memory in `references/game-jam-log.md`. Also doesn't implement — output feeds `/spec-impl`.
+- `skin-designer` — audits and **implements** the 3 mandatory skins (`clasico` default,
+  `neon`, `retro`, defined in `components/games/skins.ts`) for every game with a real
+  engine, migrating stray hex/rgba literals in `engine.ts` to skin tokens and checking
+  contrast (≥ 4.5:1 against the CRT's black background). Keeps memory in
+  `references/skin-audit.md`.
 
 ## Architecture
 
@@ -58,6 +63,11 @@ Agents live in `.claude/agents/`:
   `<canvas>` element(s), input handling, and bridges engine callbacks
   (`onScoreChange`/`onLivesChange`/`onGameOver`) to React state. Implemented so far:
   `asteroids`, `tetris`. Canvas resolution is fixed internally and scaled via CSS.
+- `components/games/skins.ts` — shared `Skin` type and the 3 mandatory skins (`clasico`
+  default, `neon`, `retro`) every game engine consumes. `createEngine` takes an optional
+  `initialSkin` and returns `setSkin()`; the skin lives as a mutable closure variable the
+  draw loop reads each frame — switching skins never recreates the engine or restarts the
+  run. Maintained by the `skin-designer` agent.
 - `components/AuthProvider.tsx` — client-side auth context; wraps the Supabase user/session,
   exposes `user`, `logout()`, and `saveScore({ game, score })` used by game pages to persist
   runs to Supabase after game-over.
