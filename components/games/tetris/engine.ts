@@ -1,21 +1,11 @@
+import { SKINS, DEFAULT_SKIN, type Skin } from "../skins";
+
 const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 const PREVIEW_BLOCK = 30;
 
 const GAME_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"];
-
-const COLORS = [
-  null,
-  "#4dd0e1", // I - cyan
-  "#ffd54f", // O - yellow
-  "#ba68c8", // T - purple
-  "#81c784", // S - green
-  "#e57373", // Z - red
-  "#90caf9", // J - pale blue
-  "#ffb74d", // L - orange
-  "#9e9e9e", // N - tuerca (gris metálico)
-] as const;
 
 const PIECES: readonly (readonly number[][] | null)[] = [
   null,
@@ -84,18 +74,26 @@ export type TetrisEngine = {
   restart: () => void;
   forceGameOver: () => void;
   destroy: () => void;
+  setSkin: (skin: Skin) => void;
+  pressKey: (code: string) => void;
+  releaseKey: (code: string) => void;
 };
 
 export function createEngine(
   boardCanvas: HTMLCanvasElement,
   nextCanvas: HTMLCanvasElement,
   callbacks: EngineCallbacks,
+  initialSkin?: Skin,
 ): TetrisEngine {
   const ctx2d = boardCanvas.getContext("2d");
   const nextCtx2d = nextCanvas.getContext("2d");
   if (!ctx2d || !nextCtx2d) throw new Error("2D context not available");
   const ctx: CanvasRenderingContext2D = ctx2d;
   const nextCtx: CanvasRenderingContext2D = nextCtx2d;
+
+  // Skin como variable de closure mutable (nunca constante de módulo): `setSkin()` solo la
+  // reasigna, `drawBlock`/`drawGrid` la leen en cada frame.
+  let skin: Skin = initialSkin ?? SKINS[DEFAULT_SKIN];
 
   let board: number[][] = createBoard();
   let current: Piece;
@@ -247,17 +245,20 @@ export function createEngine(
     alpha?: number,
   ) {
     if (!colorIndex) return;
-    const color = COLORS[colorIndex];
+    const color = skin.palette[colorIndex - 1];
     context.globalAlpha = alpha ?? 1;
-    context.fillStyle = color as string;
+    context.shadowBlur = skin.glow;
+    context.shadowColor = color;
+    context.fillStyle = color;
     context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    context.shadowBlur = 0;
     context.fillStyle = "rgba(255,255,255,0.12)";
     context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
     context.globalAlpha = 1;
   }
 
   function drawGrid() {
-    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.strokeStyle = skin.grid;
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
@@ -335,10 +336,10 @@ export function createEngine(
     spawn();
   }
 
-  function onKeyDown(e: KeyboardEvent) {
-    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+  function setKeyState(code: string, isDown: boolean) {
+    if (!isDown) return;
     if (paused || gameOver) return;
-    switch (e.code) {
+    switch (code) {
       case "ArrowLeft":
         if (!collide(current.shape, current.x - 1, current.y)) current.x--;
         break;
@@ -356,6 +357,11 @@ export function createEngine(
         hardDrop();
         break;
     }
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+    setKeyState(e.code, true);
   }
 
   function loop(ts: number) {
@@ -411,6 +417,17 @@ export function createEngine(
     forceGameOver() {
       if (gameOver) return;
       endGame();
+    },
+    setSkin(next: Skin) {
+      skin = next;
+      drawNext();
+      draw();
+    },
+    pressKey(code: string) {
+      setKeyState(code, true);
+    },
+    releaseKey() {
+      // Tetris no tiene estado de tecla mantenida: cada acción es de un solo disparo.
     },
     destroy() {
       running = false;
