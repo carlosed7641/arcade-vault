@@ -26,6 +26,10 @@ Project skills live in `.claude/skills/` (also mirrored in `.agents/skills/`):
 
 - `/spec` — writes a new numbered spec into `specs/` (spec-driven design method).
 - `/spec-impl` — implements a spec already written in `specs/`.
+- `/spec-impl-game` — same as `/spec-impl` (delegates to it) for specs that touch a game
+  with a real engine; after the implementation plan is complete it automatically chains
+  the `skin-designer` and then `mobile-porter` agents, one after the other, never in
+  parallel.
 - `/add-game` — designs the spec to integrate a real game (engine + canvas + Supabase
   leaderboard) into the Vault, following the SPEC 05/06 pattern. Asks clarifying questions
   about the game's state contract before proposing the spec; does not write code itself. See
@@ -45,6 +49,10 @@ Agents live in `.claude/agents/`:
   engine, migrating stray hex/rgba literals in `engine.ts` to skin tokens and checking
   contrast (≥ 4.5:1 against the CRT's black background). Keeps memory in
   `references/skin-audit.md`.
+- `mobile-porter` — audits and **implements** mobile web quality across the whole site
+  (≤720px viewports): horizontal overflow, tap targets ≥44px, touch accessibility, and the
+  SPEC 08 touch-control contract (`pressKey`/`releaseKey` + `TouchControls`) for every game
+  with a real engine. Keeps memory in `references/mobile-audit.md`.
 
 ## Architecture
 

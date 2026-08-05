@@ -12,6 +12,7 @@ import { GAMES } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
 import { AsteroidsCanvas } from "@/components/games/asteroids/AsteroidsCanvas";
 import { TetrisCanvas } from "@/components/games/tetris/TetrisCanvas";
+import { FroggerCanvas } from "@/components/games/frogger/FroggerCanvas";
 import {
   SKINS,
   SKIN_IDS,
@@ -46,6 +47,7 @@ const REAL_GAMES: Record<
 > = {
   rocas: AsteroidsCanvas,
   tetris: TetrisCanvas,
+  ranaria: FroggerCanvas,
 };
 
 export default function GamePlayerPage() {
