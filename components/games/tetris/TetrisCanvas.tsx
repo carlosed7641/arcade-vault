@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { createEngine, type TetrisEngine } from "./engine";
 import { SKINS, DEFAULT_SKIN, type Skin } from "../skins";
+import { TouchControls } from "../TouchControls";
 
 export type TetrisCanvasHandle = {
   restart: () => void;
@@ -103,6 +104,18 @@ export const TetrisCanvas = forwardRef<TetrisCanvasHandle, TetrisCanvasProps>(
             style={{ height: "22%", width: "auto", display: "block" }}
           />
         </div>
+        <TouchControls
+          onPress={(code) => engineRef.current?.pressKey(code)}
+          onRelease={(code) => engineRef.current?.releaseKey(code)}
+          directions={{
+            left: "ArrowLeft",
+            right: "ArrowRight",
+            up: "ArrowUp",
+            down: "ArrowDown",
+          }}
+          actionCode="Space"
+          actionLabel="CAER"
+        />
       </div>
     );
   },
