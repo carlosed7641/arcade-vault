@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { createEngine, type AsteroidsEngine } from "./engine";
 import { SKINS, DEFAULT_SKIN, type Skin } from "../skins";
+import { TouchControls } from "../TouchControls";
 
 export type AsteroidsCanvasHandle = {
   restart: () => void;
@@ -60,11 +61,20 @@ export const AsteroidsCanvas = forwardRef<
   }, [skin]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={800}
-      height={600}
-      style={{ display: "block", width: "100%", height: "auto" }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={600}
+        style={{ display: "block", width: "100%", height: "auto" }}
+      />
+      <TouchControls
+        onPress={(code) => engineRef.current?.pressKey(code)}
+        onRelease={(code) => engineRef.current?.releaseKey(code)}
+        directions={{ left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp" }}
+        actionCode="Space"
+        actionLabel="DISPARAR"
+      />
+    </>
   );
 });
