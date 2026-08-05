@@ -75,6 +75,8 @@ export type TetrisEngine = {
   forceGameOver: () => void;
   destroy: () => void;
   setSkin: (skin: Skin) => void;
+  pressKey: (code: string) => void;
+  releaseKey: (code: string) => void;
 };
 
 export function createEngine(
@@ -334,10 +336,10 @@ export function createEngine(
     spawn();
   }
 
-  function onKeyDown(e: KeyboardEvent) {
-    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+  function setKeyState(code: string, isDown: boolean) {
+    if (!isDown) return;
     if (paused || gameOver) return;
-    switch (e.code) {
+    switch (code) {
       case "ArrowLeft":
         if (!collide(current.shape, current.x - 1, current.y)) current.x--;
         break;
@@ -355,6 +357,11 @@ export function createEngine(
         hardDrop();
         break;
     }
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (GAME_KEYS.includes(e.code)) e.preventDefault();
+    setKeyState(e.code, true);
   }
 
   function loop(ts: number) {
@@ -415,6 +422,12 @@ export function createEngine(
       skin = next;
       drawNext();
       draw();
+    },
+    pressKey(code: string) {
+      setKeyState(code, true);
+    },
+    releaseKey() {
+      // Tetris no tiene estado de tecla mantenida: cada acción es de un solo disparo.
     },
     destroy() {
       running = false;
