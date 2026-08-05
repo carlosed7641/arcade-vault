@@ -329,6 +329,8 @@ export type AsteroidsEngine = {
   forceGameOver: () => void;
   destroy: () => void;
   setSkin: (skin: Skin) => void;
+  pressKey: (code: string) => void;
+  releaseKey: (code: string) => void;
 };
 
 export function createEngine(
@@ -347,15 +349,23 @@ export function createEngine(
   const keys: Record<string, boolean> = {};
   const justPressed: Record<string, boolean> = {};
 
+  function setKeyState(code: string, isDown: boolean) {
+    if (isDown) {
+      if (!keys[code]) justPressed[code] = true;
+      keys[code] = true;
+    } else {
+      keys[code] = false;
+    }
+  }
+
   function onKeyDown(e: KeyboardEvent) {
     if (GAME_KEYS.includes(e.code)) e.preventDefault();
-    if (!keys[e.code]) justPressed[e.code] = true;
-    keys[e.code] = true;
+    setKeyState(e.code, true);
   }
 
   function onKeyUp(e: KeyboardEvent) {
     if (GAME_KEYS.includes(e.code)) e.preventDefault();
-    keys[e.code] = false;
+    setKeyState(e.code, false);
   }
 
   function pressed(code: string) {
@@ -643,6 +653,12 @@ export function createEngine(
     },
     setSkin(next: Skin) {
       skin = next;
+    },
+    pressKey(code: string) {
+      setKeyState(code, true);
+    },
+    releaseKey(code: string) {
+      setKeyState(code, false);
     },
     destroy() {
       running = false;
