@@ -53,7 +53,14 @@ function useHoldButton(
     if (pointerIdRef.current !== null) return;
     e.preventDefault();
     pointerIdRef.current = e.pointerId;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // setPointerCapture puede lanzar (p. ej. NotFoundError si el pointer ya no está
+    // activo); es solo una mejora para seguir recibiendo el pointerup si el dedo se
+    // desliza fuera del botón, no debe bloquear la acción real del juego.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // no-op: seguimos dependiendo de pointerup/pointercancel/pointerleave/pointerout.
+    }
     onPress(code);
     timeoutRef.current = window.setTimeout(() => {
       intervalRef.current = window.setInterval(
