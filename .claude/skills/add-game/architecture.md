@@ -21,13 +21,23 @@ export type AsteroidsEngine = {
   restart: () => void;
   forceGameOver: () => void;
   destroy: () => void;
+  setSkin: (skin: Skin) => void;
 };
 
 export function createEngine(
   canvas: HTMLCanvasElement,
   callbacks: EngineCallbacks,
+  initialSkin?: Skin, // default: SKINS[DEFAULT_SKIN]
 ): AsteroidsEngine;
 ```
+
+Todo engine nuevo debe consumir `Skin` desde `components/games/skins.ts` (agente
+`skin-designer`, ver `.claude/agents/skin-designer.md`): el skin vive como variable de
+**closure mutable** que el draw loop lee cada frame; `setSkin()` solo la reasigna — nunca
+recrea el engine ni reinicia la partida. Ningún color de trazo/HUD puede quedar como literal
+hex/rgba dentro del `engine.ts`; todos deben venir de `skin.*` (`ink`, `inkRgb`, `inkDim`,
+`accent`, `grid`, `flameRgb`, `glow`, `font`, `palette`). El juego nace ya con los 3 skins
+(`clasico`, `neon`, `retro`) cumplidos desde el día uno — no se integra sin ellos.
 
 Reglas del engine:
 
