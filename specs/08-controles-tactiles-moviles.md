@@ -1,6 +1,6 @@
 # SPEC 08 — Controles táctiles móviles
 
-**Estado:** Aprobado
+**Estado:** Implementado
 **Depende de:** SPEC 05 (asteroids-real), SPEC 07 (tetris-real)
 **Fecha:** 2026-08-05
 
@@ -83,20 +83,20 @@ releaseKey: (code: string) => void;
 
 ## Criterios de aceptación
 
-- [ ] `npm run build` finaliza sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] `AsteroidsEngine` y `TetrisEngine` exponen `pressKey`/`releaseKey`, reutilizando la misma lógica interna que los listeners de teclado (`setKeyState`).
-- [ ] En viewport ≤720px, `/juegos/rocas/jugar` muestra el D-pad (izquierda/derecha/arriba) y el botón "DISPARAR" superpuestos sobre el canvas.
-- [ ] En viewport ≤720px, `/juegos/tetris/jugar` muestra el D-pad (4 direcciones) y el botón "CAER" superpuestos sobre el canvas.
-- [ ] Sostener un botón direccional mantiene la acción activa (rotar/mover) hasta soltar, igual que mantener presionada una tecla.
-- [ ] Se puede sostener una dirección y tocar la acción al mismo tiempo (multi-touch con dos dedos) sin que un toque cancele al otro.
-- [ ] Es posible completar una partida entera de Asteroids (rotar, impulsar, disparar, morir/terminar) usando solo los controles táctiles.
-- [ ] Es posible completar una partida entera de Tetris (mover, rotar, soft drop, hard drop, terminar) usando solo los controles táctiles.
-- [ ] En viewport >720px los controles táctiles no se renderizan y el control por teclado sigue funcionando exactamente igual que antes de esta spec.
-- [ ] En un viewport móvil de referencia (390×844), Asteroids se ve a un tamaño jugable en portrait sin necesitar rotar el dispositivo.
-- [ ] En viewport ≤720px, el HUD del reproductor (`player-hud`) se apila en filas (stats, luego PAUSA/FIN/SALIR a ancho completo) sin recortes ni superposiciones.
-- [ ] El selector de skin (`CLASICO`/`NEON`/`RETRO`) permanece sin cambios de comportamiento (solo puede wrappear por el CSS existente).
-- [ ] Los juegos con simulación falsa (resto del catálogo) no muestran controles táctiles y su comportamiento no cambió.
+- [x] `npm run build` finaliza sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] `AsteroidsEngine` y `TetrisEngine` exponen `pressKey`/`releaseKey`, reutilizando la misma lógica interna que los listeners de teclado (`setKeyState`).
+- [x] En viewport ≤720px, `/juegos/rocas/jugar` muestra el D-pad (izquierda/derecha/arriba) y el botón "DISPARAR" superpuestos sobre el canvas.
+- [x] En viewport ≤720px, `/juegos/tetris/jugar` muestra el D-pad (4 direcciones) y el botón "CAER" superpuestos sobre el canvas.
+- [x] Sostener un botón direccional mantiene la acción activa (rotar/mover) hasta soltar, igual que mantener presionada una tecla.
+- [x] Se puede sostener una dirección y tocar la acción al mismo tiempo (multi-touch con dos dedos) sin que un toque cancele al otro.
+- [x] Es posible completar una partida entera de Asteroids (rotar, impulsar, disparar, morir/terminar) usando solo los controles táctiles.
+- [x] Es posible completar una partida entera de Tetris (mover, rotar, soft drop, hard drop, terminar) usando solo los controles táctiles.
+- [x] En viewport >720px los controles táctiles no se renderizan y el control por teclado sigue funcionando exactamente igual que antes de esta spec.
+- [x] En un viewport móvil de referencia (390×844), Asteroids se ve a un tamaño jugable en portrait sin necesitar rotar el dispositivo.
+- [x] En viewport ≤720px, el HUD del reproductor (`player-hud`) se apila en filas (stats, luego PAUSA/FIN/SALIR a ancho completo) sin recortes ni superposiciones.
+- [x] El selector de skin (`CLASICO`/`NEON`/`RETRO`) permanece sin cambios de comportamiento (solo puede wrappear por el CSS existente).
+- [x] Los juegos con simulación falsa (resto del catálogo) no muestran controles táctiles y su comportamiento no cambió.
 
 ## Decisiones
 
