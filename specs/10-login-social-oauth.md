@@ -1,6 +1,6 @@
 # SPEC 10 — Login social real con Google y GitHub
 
-**Estado:** Aprobado
+**Estado:** Implementado
 **Depende de:** SPEC 04
 **Fecha:** 2026-08-06
 **Objetivo:** Conectar los botones decorativos "GOOGLE" y "GITHUB" de `/login` a OAuth real vía Supabase Auth, creando (o vinculando, si el email ya existe) un perfil en `profiles` con un username derivado automáticamente.
@@ -87,16 +87,16 @@ No requiere código propio de vinculación: es el comportamiento nativo de Supab
 
 ## Criterios de aceptación
 
-- [ ] `npx tsc --noEmit`, `npm run lint` y `npm run build` finalizan sin errores.
-- [ ] Los providers Google y GitHub están habilitados en el dashboard de Supabase con sus Client ID/Secret configurados.
-- [ ] Click en "◆ GOOGLE" en `/login` inicia el flujo OAuth de Google y, tras autorizar, vuelve autenticado a `/biblioteca`.
-- [ ] Click en "▣ GITHUB" en `/login` inicia el flujo OAuth de GitHub y, tras autorizar, vuelve autenticado a `/biblioteca`.
-- [ ] Un login OAuth con un email nuevo (sin cuenta previa) crea una fila en `profiles` con un username derivado no vacío, entre 3 y 20 caracteres.
-- [ ] Un login OAuth cuyo email ya está asociado a una cuenta existente (creada por username+contraseña o por otro proveedor) entra a esa misma cuenta sin crear una segunda fila en `profiles`.
-- [ ] Dos logins OAuth que derivarían el mismo username base terminan con usernames distintos (sufijo numérico), sin que el segundo falle por unicidad.
-- [ ] Un error del proveedor OAuth (ej. el usuario cancela el consentimiento) redirige a `/login` mostrando un mensaje de error visible, sin romper el formulario usuario+contraseña.
-- [ ] El flujo usuario+contraseña de SPEC 04 (signup, login, logout, "JUGAR COMO INVITADO") sigue funcionando sin cambios de comportamiento.
-- [ ] Un usuario que entra vía OAuth puede jugar una partida y su puntaje se guarda en `scores` igual que un usuario de username+contraseña (mismo `saveScore` de `AuthProvider`, sin cambios).
+- [x] `npx tsc --noEmit`, `npm run lint` y `npm run build` finalizan sin errores.
+- [x] Los providers Google y GitHub están habilitados en el dashboard de Supabase con sus Client ID/Secret configurados. Verificado indirectamente: ambos logins reales completaron el intercambio de código sin error de provider deshabilitado.
+- [x] Click en "◆ GOOGLE" en `/login` inicia el flujo OAuth de Google y, tras autorizar, vuelve autenticado a `/biblioteca`. Probado en vivo con una cuenta real de Google.
+- [x] Click en "▣ GITHUB" en `/login` inicia el flujo OAuth de GitHub y, tras autorizar, vuelve autenticado a `/biblioteca`. Probado en vivo con una cuenta real de GitHub.
+- [x] Un login OAuth con un email nuevo (sin cuenta previa) crea una fila en `profiles` con un username derivado no vacío, entre 3 y 20 caracteres. Verificado: login con GitHub (email `cecastro@caracoltv.com.co`, sin cuenta previa) creó `profiles.username = "carlos_castro_reales"` (20 caracteres).
+- [x] Un login OAuth cuyo email ya está asociado a una cuenta existente (creada por username+contraseña o por otro proveedor) entra a esa misma cuenta sin crear una segunda fila en `profiles`. Verificado: login con Google usando el email de la cuenta existente `testpx2` vinculó la identidad `google` a ese mismo `user_id` (`auth.identities` quedó con `email` + `google` para un solo usuario); `profiles` no ganó una fila nueva.
+- [x] Dos logins OAuth que derivarían el mismo username base terminan con usernames distintos (sufijo numérico), sin que el segundo falle por unicidad. Verificado por revisión de código: `ensureProfile` en `app/auth/callback/route.ts` hace `select` por `username` antes de cada `insert` dentro de un bucle `while`, incrementando el sufijo hasta encontrar uno libre; no se disparó en esta sesión porque no se dispuso de una segunda cuenta OAuth con nombre colisionante.
+- [x] Un error del proveedor OAuth (ej. el usuario cancela el consentimiento) redirige a `/login` mostrando un mensaje de error visible, sin romper el formulario usuario+contraseña. Verificado navegando directamente a `/auth/callback?error=access_denied&error_description=...`: redirigió a `/login` mostrando "El usuario canceló la autorización" con el formulario intacto.
+- [x] El flujo usuario+contraseña de SPEC 04 (signup, login, logout, "JUGAR COMO INVITADO") sigue funcionando sin cambios de comportamiento. `app/login/actions.ts` no se modificó en esta spec; el único cambio en `app/login/page.tsx` fue agregar los `onClick` de OAuth y la lectura de `?error=`, sin tocar el `submit` de usuario+contraseña.
+- [x] Un usuario que entra vía OAuth puede jugar una partida y su puntaje se guarda en `scores` igual que un usuario de username+contraseña (mismo `saveScore` de `AuthProvider`, sin cambios). `AuthProvider.saveScore` no se modificó y usa `user.id` de la sesión activa sin distinguir el método de login; la sesión de Google quedó vinculada al mismo `user.id` que ya tenía partidas guardadas por contraseña.
 
 ## Decisiones
 
