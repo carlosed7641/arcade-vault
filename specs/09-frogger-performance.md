@@ -1,6 +1,6 @@
 # SPEC — Frogger: optimización de performance
 
-**Estado:** Aprobado
+**Estado:** Implementado
 **Depende de:** `game-jam/frogger/01-frogger-core.md`
 **Fecha:** 2026-08-06
 **Objetivo:** Diagnosticar y corregir el stutter/FPS bajo que ocurre en Frogger cuando hay muchas entidades en pantalla (niveles altos), verificado en desktop y móvil.
@@ -50,15 +50,15 @@ No se introduce persistencia ni tipos de dominio nuevos. Los cambios son interno
 
 ## Criterios de aceptación
 
-- [ ] Se documenta la causa raíz confirmada por profiling (Chrome DevTools Performance), no solo por hipótesis de lectura de código.
-- [ ] `npx tsc --noEmit` y `npm run build` finalizan sin errores.
-- [ ] `npm run lint` no reporta errores.
-- [ ] En un nivel alto de Frogger (varios carriles llenos de entidades), jugar una ronda completa en desktop se siente fluido, sin stutter perceptible — verificado manualmente antes/después del fix.
-- [ ] En el mismo escenario, probado en móvil real o con CPU throttling en DevTools, también se siente fluido sin stutter perceptible.
-- [ ] Los 3 skins (`clasico`, `neon`, `retro`) se ven visualmente correctos y distinguibles entre sí tras el cambio, verificado manualmente cambiando entre ellos en la play-page.
-- [ ] El resto de la mecánica de Frogger (colisiones, saltos, metas, muerte, ronda completa) no cambió de comportamiento — solo se modificó el renderizado/performance.
-- [ ] Asteroids y Tetris no fueron modificados por esta spec.
-- [ ] `FroggerCanvas.tsx` no incorporó `useState` nuevo como parte del fix (se preserva el patrón `useRef`-only existente), salvo un valor que justificadamente deba disparar un re-render.
+- [x] Se documenta la causa raíz confirmada por profiling (Chrome DevTools Performance), no solo por hipótesis de lectura de código.
+- [x] `npx tsc --noEmit` y `npm run build` finalizan sin errores.
+- [x] `npm run lint` no reporta errores.
+- [x] En un nivel alto de Frogger (varios carriles llenos de entidades), jugar una ronda completa en desktop se siente fluido, sin stutter perceptible — verificado manualmente antes/después del fix.
+- [x] En el mismo escenario, probado en móvil real o con CPU throttling en DevTools, también se siente fluido sin stutter perceptible.
+- [x] Los 3 skins (`clasico`, `neon`, `retro`) se ven visualmente correctos y distinguibles entre sí tras el cambio, verificado manualmente cambiando entre ellos en la play-page.
+- [x] El resto de la mecánica de Frogger (colisiones, saltos, metas, muerte, ronda completa) no cambió de comportamiento — solo se modificó el renderizado/performance.
+- [x] Asteroids y Tetris no fueron modificados por esta spec.
+- [x] `FroggerCanvas.tsx` no incorporó `useState` nuevo como parte del fix (se preserva el patrón `useRef`-only existente), salvo un valor que justificadamente deba disparar un re-render.
 
 ## Decisiones
 
