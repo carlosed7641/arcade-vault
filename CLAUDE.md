@@ -53,6 +53,11 @@ Agents live in `.claude/agents/`:
   (≤720px viewports): horizontal overflow, tap targets ≥44px, touch accessibility, and the
   SPEC 08 touch-control contract (`pressKey`/`releaseKey` + `TouchControls`) for every game
   with a real engine. Keeps memory in `references/mobile-audit.md`.
+- `game-performance-booster` — takes a catalog **slug** and audits and **implements**
+  performance fixes for that game's `engine.ts` render/game loop (per-entity `shadowBlur`,
+  per-frame allocations/strings, unclamped `dt`, unreset canvas state), following the
+  antipatterns documented in `specs/09-frogger-performance.md`. Preserves the 3 skins and
+  game mechanics. Keeps memory in `references/performance-audit.md`.
 
 ## Architecture
 
