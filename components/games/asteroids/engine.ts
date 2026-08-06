@@ -47,8 +47,8 @@ class Bullet {
   }
 
   draw(ctx: CanvasRenderingContext2D, skin: Skin) {
-    ctx.shadowBlur = skin.glow;
-    ctx.shadowColor = skin.ink;
+    // Sin shadowBlur por bala: con disparo triple puede haber varias decenas en pantalla
+    // (ver specs/09-frogger-performance.md) — el glow queda reservado a la nave y el HUD.
     ctx.fillStyle = skin.ink;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -104,11 +104,13 @@ class Asteroid {
   }
 
   draw(ctx: CanvasRenderingContext2D, skin: Skin) {
+    // Sin shadowBlur por asteroide: a nivel alto (splits + spawn creciente) puede haber
+    // muchos en pantalla a la vez, es el mismo antipatrón que specs/09-frogger-performance.md
+    // documentó para las entidades de carril de Frogger. El trazo sólido ya distingue la
+    // silueta sin el costo de sombra por entidad.
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rot);
-    ctx.shadowBlur = skin.glow;
-    ctx.shadowColor = skin.ink;
     ctx.strokeStyle = skin.ink;
     ctx.lineWidth = 1.5;
     ctx.lineJoin = "round";
@@ -302,15 +304,20 @@ class Particle {
   }
 
   draw(ctx: CanvasRenderingContext2D, skin: Skin) {
+    // Sin shadowBlur ni string rgba() reconstruido por partícula/frame: una explosión
+    // grande puede generar decenas de partículas simultáneas. `globalAlpha` reemplaza el
+    // alpha-en-string (mismo efecto de fade, sin allocar un string nuevo por partícula) y
+    // el glow se retira porque son muchas por frame — antipatrones de
+    // specs/09-frogger-performance.md.
     const alpha = this.ttl / this.life;
-    ctx.shadowBlur = skin.glow;
-    ctx.shadowColor = skin.ink;
-    ctx.strokeStyle = `rgba(${skin.inkRgb}, ${alpha.toFixed(2)})`;
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = skin.ink;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
     ctx.lineTo(this.x - this.vx * 0.05, this.y - this.vy * 0.05);
     ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 }
 
