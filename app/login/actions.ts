@@ -13,6 +13,20 @@ export type AuthResult = { ok: true } | { ok: false; error: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENERIC_LOGIN_ERROR = "Usuario o contraseña incorrectos.";
+const GENERIC_SIGNUP_ERROR = "No se pudo crear la cuenta. Intenta de nuevo.";
+
+// Only forward Supabase Auth error messages that are known to be safe/useful
+// UX (password policy feedback). Any other message (rate limits, internal
+// details, unexpected provider errors) falls back to a generic message so we
+// never leak raw Supabase/Postgres error internals to the client.
+const SAFE_SIGNUP_ERROR_RE = /password/i;
+
+function signupErrorMessage(message: string | undefined): string {
+  if (message && SAFE_SIGNUP_ERROR_RE.test(message)) {
+    return message;
+  }
+  return GENERIC_SIGNUP_ERROR;
+}
 
 export async function signup({
   username,
@@ -51,7 +65,7 @@ export async function signup({
   if (signUpError || !signUpData.user) {
     return {
       ok: false,
-      error: signUpError?.message ?? "No se pudo crear la cuenta.",
+      error: signupErrorMessage(signUpError?.message),
     };
   }
 

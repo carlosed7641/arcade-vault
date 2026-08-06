@@ -16,13 +16,18 @@ the relevant guide in `node_modules/next/dist/docs/` (`01-app/`, `02-pages/`, `0
 - `npm start` — serve production build
 - `npm run lint` — ESLint (flat config: `eslint-config-next` core-web-vitals + typescript)
 
-No test runner is configured yet.
+No test runner is configured yet. A `PostToolUse` hook (`.claude/settings.json`) auto-runs
+`prettier --write` + `eslint --fix` on every `Write`/`Edit` of `.ts`/`.tsx`/`.js`/`.jsx`
+(prettier only for `.md`/`.mdx`) — formatting/lint fixes on touched files are automatic.
 
 ## Skills
 
 Usa siempre /frontend-design para diseñar la interfaz de usuario
 
-Project skills live in `.claude/skills/` (also mirrored in `.agents/skills/`):
+Project skills live in `.claude/skills/`. `spec` and `spec-impl` are installed from
+[Klerith/fernando-skills](https://github.com/Klerith/fernando-skills) (tracked in
+`skills-lock.json`) and mirrored read-only in `.agents/skills/`; `add-game` and
+`spec-impl-game` are local to this repo and only live in `.claude/skills/`.
 
 - `/spec` — writes a new numbered spec into `specs/` (spec-driven design method).
 - `/spec-impl` — implements a spec already written in `specs/`.
@@ -53,6 +58,16 @@ Agents live in `.claude/agents/`:
   (≤720px viewports): horizontal overflow, tap targets ≥44px, touch accessibility, and the
   SPEC 08 touch-control contract (`pressKey`/`releaseKey` + `TouchControls`) for every game
   with a real engine. Keeps memory in `references/mobile-audit.md`.
+- `game-performance-booster` — takes a catalog **slug** and audits and **implements**
+  performance fixes for that game's `engine.ts` render/game loop (per-entity `shadowBlur`,
+  per-frame allocations/strings, unclamped `dt`, unreset canvas state), following the
+  antipatterns documented in `specs/09-frogger-performance.md`. Preserves the 3 skins and
+  game mechanics. Keeps memory in `references/performance-audit.md`.
+- `security-auditor` — audits and **implements** end-to-end security for the app and the
+  Supabase database: RLS, advisors, policies, `SECURITY DEFINER` functions and grants,
+  service-role usage, server actions, the OAuth callback, `proxy.ts`, Next.js security
+  headers/CSP, and secret hygiene. Applies fixes directly, including SQL migrations via
+  `mcp__supabase__apply_migration`. Keeps memory in `references/security-audit.md`.
 
 ## Architecture
 
@@ -68,9 +83,16 @@ Agents live in `.claude/agents/`:
   - `app/acerca-de/` — About + contact form (sends email via Resend, `actions.ts`)
 - `components/games/<game>/` — one folder per integrated game: a framework-agnostic
   `engine.ts` (game state/loop/physics) plus a React `<Game>Canvas.tsx` that owns the
-  `<canvas>` element(s), input handling, and bridges engine callbacks
-  (`onScoreChange`/`onLivesChange`/`onGameOver`) to React state. Implemented so far:
-  `asteroids`, `tetris`. Canvas resolution is fixed internally and scaled via CSS.
+  `<canvas>` element(s), input handling, and bridges engine state to React. Implemented so
+  far: `asteroids`, `tetris`, `frogger`. Canvas resolution is fixed internally and scaled
+  via CSS. The play page (`app/juegos/[id]/jugar/page.tsx`) maps catalog slug → component
+  via a `REAL_GAMES` record (`rocas`→Asteroids, `tetris`→Tetris, `ranaria`→Frogger) and
+  requires every `<Game>Canvas.tsx` to implement a shared contract: props
+  `onScoreChange`/`onLivesChange`/`onLevelChange`/`onGameOver`/`skin`, plus an imperative
+  ref handle (`RealGameHandle`) exposing `restart()`/`setPaused()`/`forceGameOver()`.
+- `components/games/TouchControls.tsx` — shared on-screen D-pad + action button consumed by
+  every real game's canvas per the SPEC 08 touch contract (`pressKey`/`releaseKey` on the
+  engine); simulates OS key-repeat while a button is held.
 - `components/games/skins.ts` — shared `Skin` type and the 3 mandatory skins (`clasico`
   default, `neon`, `retro`) every game engine consumes. `createEngine` takes an optional
   `initialSkin` and returns `setSkin()`; the skin lives as a mutable closure variable the
@@ -80,15 +102,20 @@ Agents live in `.claude/agents/`:
   exposes `user`, `logout()`, and `saveScore({ game, score })` used by game pages to persist
   runs to Supabase after game-over.
 - `components/Nav.tsx`, `components/GameCard.tsx` — shared nav bar and catalog card.
-- `lib/data.ts` — static game catalog (`GAMES`): id/title/category/color/cover/short/long +
+- `lib/data.ts` — static game catalog (`GAMES`, 9 entries: only `rocas`/`tetris`/`ranaria`
+  have a real engine, the rest are catalog-only): id/title/category/color/cover/short/long +
   hardcoded display-only `best`/`plays` (not derived from Supabase, decided in SPEC 06).
 - `lib/supabase/client.ts` / `server.ts` / `admin.ts` — browser, server-component, and
   service-role Supabase clients respectively.
 - `proxy.ts` — Next.js proxy (this version's replacement for classic middleware) that
   refreshes the Supabase auth session on every request; do not add logic between
   `createServerClient` and `getUser()` in there.
-- Supabase tables in use: `profiles` (id/username) and a scores table keyed by `game_id`,
-  read by the leaderboard on game detail pages and written via `AuthProvider.saveScore`.
+- Supabase tables in use: `profiles` (id/username) and `scores` (keyed by `game_id`), read by
+  `app/juegos/[id]/page.tsx` (per-game leaderboard) and `app/salon-de-la-fama/page.tsx`
+  (Hall of Fame), written via `AuthProvider.saveScore`.
+- `AGENTS.md` — repo-root Next.js version warning (same content as this file's "Critical"
+  section) picked up by non-Claude coding agents. `.mcp.json` registers the Supabase MCP
+  server (HTTP, project ref `viypdyhgqsigxzozalzb`) used by the `mcp__supabase__*` tools.
 - Tailwind v4 via `@tailwindcss/postcss` (see `postcss.config.mjs`) — there is no
   `tailwind.config.*` file.
 - TypeScript strict mode, `noEmit`, `moduleResolution: bundler`. Path alias `@/*` → repo root.
@@ -103,8 +130,8 @@ See `.env.template`: `RESEND_API_KEY`, `CONTACT_TO_EMAIL` (contact form),
 
 Arcade Vault is an online platform for playing arcade games and competing for high scores.
 Users can sign up/log in (Supabase auth), browse a game catalog, play real in-browser games
-(Asteroids, Tetris so far), have their scores persisted to Supabase, and see per-game and
-global (Hall of Fame) leaderboards.
+(Asteroids, Tetris, Frogger so far), have their scores persisted to Supabase, and see
+per-game and global (Hall of Fame) leaderboards.
 
 ## Workflow
 
@@ -115,9 +142,18 @@ Feature work follows Spec Driven Design using the `/spec` and `/spec-impl` skill
 npx skills@latest add Klerith/fernando-skills
 ```
 
-Specs live in `specs/`, numbered sequentially (currently 01–07). New games are designed via
-`/add-game` (produces a spec following the same format) before running `/spec-impl` on it.
+Specs live in `specs/`, numbered sequentially (currently 01–09). New games designed from an
+existing template are proposed via `/add-game` before running `/spec-impl` on the result;
+brand-new original games (no template) are designed by the `game-jam` agent, which writes
+two specs into `specs/game-jam/<game-id>/` — Frogger (`ranaria`) shipped this way, not from
+`started-games/`. Either path is implemented via `/spec-impl-game`, which auto-chains
+`skin-designer` then `mobile-porter` afterward.
 
 `references/templates/started-games/` holds source templates for games not yet integrated
-(e.g. `03-tetris` now integrated, `04-arkanoid` pending) — used as the starting point when
-porting a game's engine into `components/games/`.
+(`02-asteroids` and `03-tetris` now integrated, `04-arkanoid` pending) — used as the starting
+point when porting a game's engine into `components/games/`. `references/` also keeps agent
+memory files: `game-suggestions.md`/`game-suggestions-todo.md` (`game-planner`),
+`game-jam-log.md` (`game-jam`), `skin-audit.md` (`skin-designer`), `mobile-audit.md`
+(`mobile-porter`), `performance-audit.md` (`game-performance-booster`),
+`security-audit.md` (`security-auditor`), and `implemented-gamesd.md` (manually kept
+table of games with a real engine).

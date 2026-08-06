@@ -1,17 +1,29 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signin, signup } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const displayedError = error ?? searchParams.get("error");
+
+  const loginWithProvider = (provider: "google" | "github") => {
+    const supabase = createClient();
+    supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +119,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && <div className="form-error">{error}</div>}
+          {displayedError && <div className="form-error">{displayedError}</div>}
 
           <button
             className="btn lg"
@@ -133,10 +145,18 @@ export default function LoginPage() {
 
         <div className="auth-divider">O CONTINÚA CON</div>
         <div className="social">
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => loginWithProvider("google")}
+          >
             ◆ GOOGLE
           </button>
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => loginWithProvider("github")}
+          >
             ▣ GITHUB
           </button>
         </div>
