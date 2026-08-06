@@ -37,8 +37,9 @@ async function ensureProfile(
   const baseUsername = slugifyUsername(candidate);
   let username = baseUsername;
   let suffix = 2;
+  const MAX_ATTEMPTS = 50;
 
-  while (true) {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const { data: taken } = await supabase
       .from("profiles")
       .select("id")
@@ -47,11 +48,30 @@ async function ensureProfile(
 
     if (!taken) break;
 
-    username = `${baseUsername}_${suffix}`.slice(0, 20);
+    // Reserve room for the numeric suffix so it never gets truncated away by
+    // slice(0, 20) when baseUsername is already 20 chars long (which would
+    // otherwise produce the same candidate forever and loop indefinitely).
+    const suffixStr = `_${suffix}`;
+    username = `${baseUsername.slice(0, 20 - suffixStr.length)}${suffixStr}`;
     suffix += 1;
+
+    if (attempt === MAX_ATTEMPTS - 1) {
+      // Extremely unlikely (would need 50 colliding usernames), but guarantee
+      // termination with a value that's virtually guaranteed to be unique.
+      username = `player_${userId.slice(0, 12)}`;
+    }
   }
 
-  await supabase.from("profiles").insert({ id: userId, username });
+  const { error: insertError } = await supabase
+    .from("profiles")
+    .insert({ id: userId, username });
+
+  if (insertError) {
+    // Non-fatal: the user is already authenticated. A missing profile row
+    // just means username-dependent UI won't have a value; it's re-attempted
+    // on the next OAuth login since ensureProfile re-checks for an existing row.
+    console.error("ensureProfile: failed to insert profile", insertError);
+  }
 }
 
 export async function GET(request: NextRequest) {

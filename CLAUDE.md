@@ -63,6 +63,11 @@ Agents live in `.claude/agents/`:
   per-frame allocations/strings, unclamped `dt`, unreset canvas state), following the
   antipatterns documented in `specs/09-frogger-performance.md`. Preserves the 3 skins and
   game mechanics. Keeps memory in `references/performance-audit.md`.
+- `security-auditor` — audits and **implements** end-to-end security for the app and the
+  Supabase database: RLS, advisors, policies, `SECURITY DEFINER` functions and grants,
+  service-role usage, server actions, the OAuth callback, `proxy.ts`, Next.js security
+  headers/CSP, and secret hygiene. Applies fixes directly, including SQL migrations via
+  `mcp__supabase__apply_migration`. Keeps memory in `references/security-audit.md`.
 
 ## Architecture
 
@@ -149,5 +154,6 @@ two specs into `specs/game-jam/<game-id>/` — Frogger (`ranaria`) shipped this 
 point when porting a game's engine into `components/games/`. `references/` also keeps agent
 memory files: `game-suggestions.md`/`game-suggestions-todo.md` (`game-planner`),
 `game-jam-log.md` (`game-jam`), `skin-audit.md` (`skin-designer`), `mobile-audit.md`
-(`mobile-porter`), `performance-audit.md` (`game-performance-booster`), and
-`implemented-gamesd.md` (manually kept table of games with a real engine).
+(`mobile-porter`), `performance-audit.md` (`game-performance-booster`),
+`security-audit.md` (`security-auditor`), and `implemented-gamesd.md` (manually kept
+table of games with a real engine).
