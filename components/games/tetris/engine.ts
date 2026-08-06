@@ -236,6 +236,10 @@ export function createEngine(
     drawNext();
   }
 
+  // `glow` solo se aplica a las piezas pocas-por-frame (pieza activa, ghost, preview de
+  // "siguiente"): como máximo ~12 bloques/frame. El tablero bloqueado puede llegar a 200
+  // celdas llenas y crece con la partida, así que ahí se evita `shadowBlur` por celda
+  // (antipatrón confirmado en SPEC 09) y se simula profundidad con un borde sólido.
   function drawBlock(
     context: CanvasRenderingContext2D,
     x: number,
@@ -243,15 +247,25 @@ export function createEngine(
     colorIndex: number,
     size: number,
     alpha?: number,
+    glow = true,
   ) {
     if (!colorIndex) return;
     const color = skin.palette[colorIndex - 1];
     context.globalAlpha = alpha ?? 1;
-    context.shadowBlur = skin.glow;
-    context.shadowColor = color;
+    if (glow) {
+      context.shadowBlur = skin.glow;
+      context.shadowColor = color;
+    } else {
+      context.shadowBlur = 0;
+    }
     context.fillStyle = color;
     context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
     context.shadowBlur = 0;
+    if (!glow) {
+      context.strokeStyle = `rgba(${skin.inkRgb}, 0.35)`;
+      context.lineWidth = 1;
+      context.strokeRect(x * size + 1.5, y * size + 1.5, size - 3, size - 3);
+    }
     context.fillStyle = "rgba(255,255,255,0.12)";
     context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
     context.globalAlpha = 1;
@@ -279,7 +293,8 @@ export function createEngine(
     drawGrid();
 
     for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++) drawBlock(ctx, c, r, board[r][c], BLOCK);
+      for (let c = 0; c < COLS; c++)
+        drawBlock(ctx, c, r, board[r][c], BLOCK, undefined, false);
 
     const gy = ghostY();
     for (let r = 0; r < current.shape.length; r++)
@@ -292,6 +307,7 @@ export function createEngine(
             current.shape[r][c],
             BLOCK,
             0.2,
+            false,
           );
 
     for (let r = 0; r < current.shape.length; r++)
@@ -367,7 +383,9 @@ export function createEngine(
   function loop(ts: number) {
     if (!running) return;
     if (!paused && !gameOver) {
-      const dt = lastTime === null ? 0 : ts - lastTime;
+      // Clamp a 100ms: evita que un tab en background (dt gigante al volver) dispare
+      // una caída instantánea acumulada, igual que el fix aplicado en Frogger (SPEC 09).
+      const dt = lastTime === null ? 0 : Math.min(ts - lastTime, 100);
       lastTime = ts;
       dropAccum += dt;
       if (dropAccum >= dropInterval) {
