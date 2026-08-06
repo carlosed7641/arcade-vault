@@ -460,10 +460,10 @@ export function createEngine(
 
     if (entity.type === "car") {
       ctx.fillStyle = skin.palette[4];
-      ctx.shadowBlur = skin.glow;
-      ctx.shadowColor = skin.palette[4];
+      ctx.strokeStyle = `rgba(${skin.inkRgb}, 0.35)`;
+      ctx.lineWidth = 1;
       ctx.fillRect(x + 2, y + 6, w - 4, CELL - 12);
-      ctx.shadowBlur = 0;
+      ctx.strokeRect(x + 2, y + 6, w - 4, CELL - 12);
       ctx.fillStyle = `rgba(${skin.inkRgb}, 0.8)`;
       ctx.beginPath();
       ctx.arc(x + 8, y + CELL - 8, 4, 0, Math.PI * 2);
@@ -473,10 +473,10 @@ export function createEngine(
     }
     if (entity.type === "truck") {
       ctx.fillStyle = skin.palette[7];
-      ctx.shadowBlur = skin.glow;
-      ctx.shadowColor = skin.palette[7];
+      ctx.strokeStyle = `rgba(${skin.inkRgb}, 0.35)`;
+      ctx.lineWidth = 1;
       ctx.fillRect(x + 2, y + 4, w - 4, CELL - 8);
-      ctx.shadowBlur = 0;
+      ctx.strokeRect(x + 2, y + 4, w - 4, CELL - 8);
       const cabW = Math.min(CELL - 6, w - 4);
       const cabX = lane.dir === 1 ? x + w - cabW - 2 : x + 2;
       ctx.fillStyle = skin.palette[6];
@@ -509,12 +509,9 @@ export function createEngine(
         ctx.stroke();
       } else {
         ctx.fillStyle = skin.palette[3];
-        ctx.shadowBlur = skin.glow;
-        ctx.shadowColor = skin.palette[3];
         ctx.beginPath();
         ctx.ellipse(cx, cy, 14, 11, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
         ctx.strokeStyle = `rgba(${skin.inkRgb}, 0.4)`;
         ctx.lineWidth = 1;
         ctx.beginPath();
